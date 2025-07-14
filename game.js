@@ -549,7 +549,7 @@ window.addEventListener('keydown', (e) => {
     meterActive = false;
     powerBar.style.display = 'none';
     powerLevel.style.width = '0%';
-    if (!hazardPenalty) {
+    if (!hazardPenalty && hits > 1) {
       hits++;
       updateCounter();
     } else {
