@@ -8,3 +8,13 @@ Open `index.html` in a web browser. The game canvas will scale to your browser w
 Press the Space key once to start the power meter and press again to launch the ball. Try to land it in the hole on the right side of the screen.
 Avoid trees, water, bunkers and hills along the way. The green around the hole is slicker, so the ball rolls farther.
 Press **R** to reset the ball if you want to restart the hole.
+
+## Git maintenance
+
+To remove local branches that were deleted remotely, run:
+
+```bash
+./scripts/delete-stale-branches.sh
+```
+
+This fetches updates, detects branches marked as gone and force deletes them using `git branch -D`.
