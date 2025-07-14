@@ -19,19 +19,38 @@ const ball = {
   moving: false
 };
 
+// DOM elements
+const counterEl = document.getElementById('counter');
+const holeInfoEl = document.getElementById('holeInfo');
+const scoresEl = document.getElementById('scores');
+const powerBar = document.getElementById('powerBar');
+const powerLevel = document.getElementById('powerLevel');
+
+// Game state
+const TOTAL_HOLES = 18;
+let currentHole = 1;
+let hits = 0;
+let scores = [];
+let holeCompleted = false;
+
 function resizeCanvas() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
 }
 
+function randomRange(min, max) {
+  return Math.random() * (max - min) + min;
+}
+
 function setupCourse() {
-  hole.x = canvas.width - 80;
+  // randomize hole and obstacle positions for each hole
+  hole.x = randomRange(canvas.width * 0.7, canvas.width - 80);
   hole.y = canvas.height - 10;
   obstacles = [
-    { type: 'tree', x: canvas.width * 0.3, width: 20, height: 60 },
-    { type: 'water', x: canvas.width * 0.45, width: 60, depth: 15 },
-    { type: 'bunker', x: canvas.width * 0.65, width: 80, depth: 12 },
-    { type: 'hill', x: canvas.width * 0.55, width: 50, height: 30 }
+    { type: 'tree', x: randomRange(canvas.width * 0.2, canvas.width * 0.4), width: 20, height: 60 },
+    { type: 'water', x: randomRange(canvas.width * 0.4, canvas.width * 0.6), width: 60, depth: 15 },
+    { type: 'bunker', x: randomRange(canvas.width * 0.6, canvas.width * 0.8), width: 80, depth: 12 },
+    { type: 'hill', x: randomRange(canvas.width * 0.5, canvas.width * 0.7), width: 50, height: 30 }
   ];
   ball.x = 50;
   ball.y = canvas.height - 20;
@@ -40,12 +59,12 @@ function setupCourse() {
 window.addEventListener('resize', () => {
   resizeCanvas();
   setupCourse();
+  updateHoleInfo();
 });
 resizeCanvas();
 setupCourse();
-
-let hits = 0;
-const counterEl = document.getElementById('counter');
+updateHoleInfo();
+updateScoreboard();
 
 function updateCounter() {
   if (counterEl) {
@@ -53,9 +72,32 @@ function updateCounter() {
   }
 }
 
+function updateHoleInfo() {
+  if (holeInfoEl) {
+    holeInfoEl.textContent = `Hole ${currentHole}/${TOTAL_HOLES}`;
+  }
+}
+
+function updateScoreboard() {
+  if (scoresEl) {
+    scoresEl.innerHTML = scores.map((s, i) => `<li>Hole ${i + 1}: ${s}</li>`).join('');
+  }
+}
+
+function nextHole() {
+  currentHole++;
+  if (currentHole > TOTAL_HOLES) {
+    if (holeInfoEl) holeInfoEl.textContent = 'Game Over';
+    return;
+  }
+  hits = 0;
+  holeCompleted = false;
+  updateCounter();
+  updateHoleInfo();
+  setupCourse();
+}
+
 let angle = Math.PI / 4; // aiming angle in radians
-const powerBar = document.getElementById('powerBar');
-const powerLevel = document.getElementById('powerLevel');
 
 let power = 10;                // selected launch power
 const MAX_POWER = 50;          // maximum launch strength shown by meter
@@ -168,6 +210,13 @@ function update() {
       }
     });
   }
+
+  if (!ball.moving && !holeCompleted && Math.hypot(ball.x - hole.x, ball.y - hole.y) < hole.radius) {
+    holeCompleted = true;
+    scores.push(hits);
+    updateScoreboard();
+    setTimeout(nextHole, 1000);
+  }
 }
 
 function drawGround() {
@@ -191,7 +240,8 @@ function drawHole() {
   if (!ball.moving && Math.hypot(ball.x - hole.x, ball.y - hole.y) < hole.radius) {
     ctx.fillStyle = 'green';
     ctx.font = '24px Arial';
-    ctx.fillText('You win!', canvas.width / 2 - 50, canvas.height / 2);
+    const msg = currentHole > TOTAL_HOLES ? 'Game Over' : 'Hole Complete!';
+    ctx.fillText(msg, canvas.width / 2 - 60, canvas.height / 2);
   }
 }
 
@@ -282,4 +332,5 @@ window.addEventListener('keydown', (e) => {
 });
 
 updateCounter();
+updateHoleInfo();
 loop();

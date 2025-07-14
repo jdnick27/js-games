@@ -7,4 +7,9 @@ A simple browser golf game. Aim the ball and launch it toward the hole on a flat
 Open `index.html` in a web browser. The game canvas will scale to your browser window. Use the left and right arrow keys to adjust the shot angle.
 Press the Space key once to start the power meter and press again to launch the ball. Try to land it in the hole on the right side of the screen.
 Avoid trees, water, bunkers and hills along the way. The green around the hole is slicker, so the ball rolls farther.
-Press **R** to reset the ball if you want to restart the hole.
+Press **R** to reset the ball if you want to restart the current hole.
+
+The game now features 18 holes played in sequence. Your strokes for each hole
+are recorded on the scoreboard shown on the right side of the screen. Once the
+ball comes to rest in the hole the next hole will automatically load until all
+18 are completed.
