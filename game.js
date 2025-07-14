@@ -14,6 +14,8 @@ const hole = {
 let obstacles = [];
 
 const BALL_RADIUS = 10;
+const TREE_BASE_WIDTH = 20;
+const TREE_BASE_HEIGHT = 60;
 const GROUND_THICKNESS = 20; // thickness of the ground from the bottom of the canvas
 
 const ball = {
@@ -103,11 +105,22 @@ function setupCourse() {
   }];
 
   obstacles = [];
-  obstacles.push(createObstacle('tree', canvas.width * 0.2, canvas.width * 0.4, { width: 20, height: 60 }, avoidGreen));
+  const treeCount = Math.floor(randomRange(1, 4));
+  for (let i = 0; i < treeCount; i++) {
+    const scale = randomRange(1.5, 3);
+    obstacles.push(createObstacle(
+      'tree',
+      canvas.width * 0.2,
+      canvas.width * 0.4,
+      { width: TREE_BASE_WIDTH * scale, height: TREE_BASE_HEIGHT * scale },
+      avoidGreen
+    ));
+  }
+  // Place the hill before water and sand so they avoid its space
+  obstacles.push(createObstacle('hill', canvas.width * 0.5, canvas.width * 0.7, { width: 100, height: 40 }, avoidGreen));
   // Water hazards should appear level with the ground so no depth is needed
   obstacles.push(createObstacle('water', canvas.width * 0.4, canvas.width * 0.6, { width: 60 }, avoidGreen));
   obstacles.push(createObstacle('bunker', canvas.width * 0.6, canvas.width * 0.8, { width: 80, depth: 12 }, avoidGreen));
-  obstacles.push(createObstacle('hill', canvas.width * 0.5, canvas.width * 0.7, { width: 50, height: 30 }, avoidGreen));
 
   ball.x = 50;
   ball.y = canvas.height - GROUND_THICKNESS - BALL_RADIUS;
@@ -186,7 +199,7 @@ function groundHeightAt(x) {
   obstacles.forEach(o => {
     if (o.type === 'hill' && x >= o.x && x <= o.x + o.width) {
       const t = (x - o.x) / o.width;
-      const height = o.height * (1 - Math.abs(2 * t - 1));
+      const height = o.height * Math.sin(Math.PI * t);
       y -= height;
     }
   });
@@ -197,8 +210,8 @@ function groundSlopeAt(x) {
   let slope = 0;
   obstacles.forEach(o => {
     if (o.type === 'hill' && x >= o.x && x <= o.x + o.width) {
-      const half = o.width / 2;
-      slope = (x - o.x < half ? -1 : 1) * o.height / half;
+      const t = (x - o.x) / o.width;
+      slope = -o.height * Math.PI / o.width * Math.cos(Math.PI * t);
     }
   });
   return slope;
@@ -492,8 +505,8 @@ function loop() {
 }
 
 window.addEventListener('keydown', (e) => {
-  if (e.code === 'ArrowLeft' && !ball.moving) angle -= 0.05;
-  if (e.code === 'ArrowRight' && !ball.moving) angle += 0.05;
+  if (e.code === 'ArrowLeft' && !ball.moving) angle += 0.05;  // inverted controls
+  if (e.code === 'ArrowRight' && !ball.moving) angle -= 0.05; // inverted controls
   if (e.code === 'KeyR') {
     ball.x = 50;
     ball.y = canvas.height - GROUND_THICKNESS - BALL_RADIUS;
