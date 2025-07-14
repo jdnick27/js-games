@@ -1,6 +1,24 @@
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 
+const hole = {
+  x: 0,
+  y: 0,
+  radius: 8,
+  greenRadius: 40
+};
+
+let obstacles = [];
+
+const ball = {
+  x: 50,
+  y: 0, // will be set in setupCourse
+  radius: 10,
+  vx: 0,
+  vy: 0,
+  moving: false
+};
+
 function resizeCanvas() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
@@ -35,15 +53,6 @@ function updateCounter() {
   }
 }
 
-const ball = {
-  x: 50,
-  y: canvas.height - 20,
-  radius: 10,
-  vx: 0,
-  vy: 0,
-  moving: false
-};
-
 let angle = Math.PI / 4; // aiming angle in radians
 const powerBar = document.getElementById('powerBar');
 const powerLevel = document.getElementById('powerLevel');
@@ -60,15 +69,6 @@ const GRAVITY = 0.4;
 const FRICTION_NORMAL = 0.99;
 const FRICTION_GREEN = 0.995;
 const FRICTION_BUNKER = 0.92;
-
-const hole = {
-  x: 0,
-  y: 0,
-  radius: 8,
-  greenRadius: 40
-};
-
-let obstacles = [];
 
 function ballInBunker() {
   return obstacles.some(o =>
