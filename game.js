@@ -16,6 +16,8 @@ let obstacles = [];
 const BALL_RADIUS = 10;
 const TREE_BASE_WIDTH = 20;
 const TREE_BASE_HEIGHT = 60;
+const ROCK_RADIUS = 20;
+const BUSH_RADIUS = 15;
 const GROUND_THICKNESS = 20; // thickness of the ground from the bottom of the canvas
 
 const ball = {
@@ -56,6 +58,8 @@ function randomRange(min, max) {
 function obstacleRange(ob) {
   if (ob.type === 'tree') {
     return { left: ob.x - ob.width / 2, right: ob.x + ob.width / 2 };
+  } else if (ob.type === 'rock' || ob.type === 'bush') {
+    return { left: ob.x - ob.radius, right: ob.x + ob.radius };
   }
   return { left: ob.x, right: ob.x + ob.width };
 }
@@ -108,19 +112,77 @@ function setupCourse() {
   const treeCount = Math.floor(randomRange(1, 4));
   for (let i = 0; i < treeCount; i++) {
     const scale = randomRange(1.5, 3);
-    obstacles.push(createObstacle(
-      'tree',
-      canvas.width * 0.2,
-      canvas.width * 0.4,
-      { width: TREE_BASE_WIDTH * scale, height: TREE_BASE_HEIGHT * scale },
-      avoidGreen
-    ));
+    obstacles.push(
+      createObstacle(
+        'tree',
+        canvas.width * 0.2,
+        canvas.width * 0.4,
+        { width: TREE_BASE_WIDTH * scale, height: TREE_BASE_HEIGHT * scale },
+        avoidGreen
+      )
+    );
   }
+
+  const bushCount = Math.floor(randomRange(1, 4));
+  for (let i = 0; i < bushCount; i++) {
+    obstacles.push(
+      createObstacle(
+        'bush',
+        canvas.width * 0.25,
+        canvas.width * 0.6,
+        { radius: randomRange(BUSH_RADIUS * 0.8, BUSH_RADIUS * 1.2) },
+        avoidGreen
+      )
+    );
+  }
+
+  const rockCount = Math.floor(randomRange(0, 3));
+  for (let i = 0; i < rockCount; i++) {
+    obstacles.push(
+      createObstacle(
+        'rock',
+        canvas.width * 0.3,
+        canvas.width * 0.7,
+        { radius: randomRange(ROCK_RADIUS * 0.8, ROCK_RADIUS * 1.2) },
+        avoidGreen
+      )
+    );
+  }
+
   // Place the hill before water and sand so they avoid its space
-  obstacles.push(createObstacle('hill', canvas.width * 0.5, canvas.width * 0.7, { width: 100, height: 40 }, avoidGreen));
-  // Water hazards should appear level with the ground so no depth is needed
-  obstacles.push(createObstacle('water', canvas.width * 0.4, canvas.width * 0.6, { width: 60 }, avoidGreen));
-  obstacles.push(createObstacle('bunker', canvas.width * 0.6, canvas.width * 0.8, { width: 80, depth: 12 }, avoidGreen));
+  obstacles.push(
+    createObstacle(
+      'hill',
+      canvas.width * 0.4,
+      canvas.width * 0.75,
+      { width: randomRange(80, 120), height: randomRange(30, 50) },
+      avoidGreen
+    )
+  );
+
+  if (Math.random() < 0.7) {
+    obstacles.push(
+      createObstacle(
+        'water',
+        canvas.width * 0.35,
+        canvas.width * 0.7,
+        { width: randomRange(50, 80) },
+        avoidGreen
+      )
+    );
+  }
+
+  if (Math.random() < 0.7) {
+    obstacles.push(
+      createObstacle(
+        'bunker',
+        canvas.width * 0.55,
+        canvas.width * 0.85,
+        { width: randomRange(60, 100), depth: 12 },
+        avoidGreen
+      )
+    );
+  }
 
   ball.x = 50;
   ball.y = canvas.height - GROUND_THICKNESS - BALL_RADIUS;
@@ -339,6 +401,37 @@ function update() {
               ball.moving = false;
             }
           }
+        } else if (o.type === 'rock') {
+          const cx = o.x;
+          const cy = groundHeightAt(o.x) - o.radius;
+          const dx = ball.x - cx;
+          const dy = ball.y - cy;
+          const dist = Math.hypot(dx, dy);
+          if (dist < ball.radius + o.radius) {
+            const overlap = ball.radius + o.radius - dist;
+            const ang = Math.atan2(dy, dx);
+            ball.x += Math.cos(ang) * overlap;
+            ball.y += Math.sin(ang) * overlap;
+            const speed = Math.hypot(ball.vx, ball.vy);
+            const dir = Math.atan2(ball.vy, ball.vx);
+            const newDir = 2 * ang - dir;
+            ball.vx = Math.cos(newDir) * speed * 0.5;
+            ball.vy = Math.sin(newDir) * speed * 0.5;
+          }
+        } else if (o.type === 'bush') {
+          const cx = o.x;
+          const cy = groundHeightAt(o.x) - o.radius;
+          const dx = ball.x - cx;
+          const dy = ball.y - cy;
+          const dist = Math.hypot(dx, dy);
+          if (dist < ball.radius + o.radius) {
+            const overlap = ball.radius + o.radius - dist;
+            const ang = Math.atan2(dy, dx);
+            ball.x += Math.cos(ang) * overlap;
+            ball.y += Math.sin(ang) * overlap;
+            ball.vx *= 0.3;
+            ball.vy *= 0.3;
+          }
         }
     });
 
@@ -472,6 +565,16 @@ function drawObstacles() {
         ctx.lineTo(x, groundHeightAt(x) - o.depth);
       }
       ctx.closePath();
+      ctx.fill();
+    } else if (o.type === 'rock') {
+      ctx.fillStyle = '#808080';
+      ctx.beginPath();
+      ctx.arc(o.x, groundCenter - o.radius, o.radius, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (o.type === 'bush') {
+      ctx.fillStyle = '#228B22';
+      ctx.beginPath();
+      ctx.arc(o.x, groundCenter - o.radius * 0.5, o.radius, 0, Math.PI * 2);
       ctx.fill();
     }
   });
