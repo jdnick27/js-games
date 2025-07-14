@@ -13,6 +13,6 @@ The game now features 18 holes played in sequence. Each hole has a randomly
 assigned **par** value along with a distance from the tee. The overlay at the
 top of the screen shows the current hole number, its par and distance. Your
 strokes for each hole are recorded on the scoreboard shown on the right side of
-the screen along with how many strokes over or under par you were. Once the
-ball comes to rest in the hole the next hole will automatically load until all
-18 are completed.
+the screen along with how many strokes over or under par you were. When the
+ball drops into the cup the hole is complete and the next hole will
+automatically load until all 18 are finished.

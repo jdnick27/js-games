@@ -4,21 +4,25 @@ const ctx = canvas.getContext('2d');
 const hole = {
   x: 0,
   y: 0,
-  radius: 8,
-  greenRadius: 40,
+  radius: 12,
+  greenRadius: 80,
+  cupDepth: 15,
   par: 4,
   distance: 0
 };
 
 let obstacles = [];
 
+const BALL_RADIUS = 10;
+
 const ball = {
   x: 50,
   y: 0, // will be set in setupCourse
-  radius: 10,
+  radius: BALL_RADIUS,
   vx: 0,
   vy: 0,
-  moving: false
+  moving: false,
+  falling: false
 };
 
 // DOM elements
@@ -93,7 +97,8 @@ function setupCourse() {
 
   obstacles = [];
   obstacles.push(createObstacle('tree', canvas.width * 0.2, canvas.width * 0.4, { width: 20, height: 60 }, avoidGreen));
-  obstacles.push(createObstacle('water', canvas.width * 0.4, canvas.width * 0.6, { width: 60, depth: 15 }, avoidGreen));
+  // Water hazards should appear level with the ground so no depth is needed
+  obstacles.push(createObstacle('water', canvas.width * 0.4, canvas.width * 0.6, { width: 60 }, avoidGreen));
   obstacles.push(createObstacle('bunker', canvas.width * 0.6, canvas.width * 0.8, { width: 80, depth: 12 }, avoidGreen));
   obstacles.push(createObstacle('hill', canvas.width * 0.5, canvas.width * 0.7, { width: 50, height: 30 }, avoidGreen));
 
@@ -144,8 +149,10 @@ function nextHole() {
   hits = 0;
   holeCompleted = false;
   updateCounter();
-  setupCourse();
   updateHoleInfo();
+  setupCourse();
+  ball.radius = BALL_RADIUS;
+  ball.falling = false;
 }
 
 let angle = Math.PI / 4; // aiming angle in radians
@@ -163,6 +170,32 @@ const FRICTION_NORMAL = 0.99;
 const FRICTION_GREEN = 0.995;
 const FRICTION_BUNKER = 0.92;
 let bunkerPenaltyApplied = false;
+
+// how strongly gravity pulls the ball along slopes
+const SLOPE_ACCEL = 0.2;
+
+function groundHeightAt(x) {
+  let y = canvas.height - 10;
+  obstacles.forEach(o => {
+    if (o.type === 'hill' && x >= o.x && x <= o.x + o.width) {
+      const t = (x - o.x) / o.width;
+      const height = o.height * (1 - Math.abs(2 * t - 1));
+      y -= height;
+    }
+  });
+  return y;
+}
+
+function groundSlopeAt(x) {
+  let slope = 0;
+  obstacles.forEach(o => {
+    if (o.type === 'hill' && x >= o.x && x <= o.x + o.width) {
+      const half = o.width / 2;
+      slope = (x - o.x < half ? -1 : 1) * o.height / half;
+    }
+  });
+  return slope;
+}
 
 function ballInBunker() {
   return obstacles.some(o =>
@@ -191,6 +224,22 @@ function launch() {
 }
 
 function update() {
+  if (ball.falling) {
+    ball.vy += GRAVITY;
+    ball.y += ball.vy;
+    if (ball.radius > 0.5) {
+      ball.radius *= 0.95;
+    }
+    if (ball.y - ball.radius > hole.y + hole.cupDepth) {
+      ball.falling = false;
+      ball.moving = false;
+      holeCompleted = true;
+      scores.push(hits);
+      updateScoreboard();
+      setTimeout(nextHole, 1000);
+    }
+    return;
+  }
   if (meterActive) {
     meterPercent += METER_SPEED * meterDirection;
     if (meterPercent >= 100) {
@@ -216,27 +265,33 @@ function update() {
     ball.vy += GRAVITY;
     ball.x += ball.vx;
     ball.y += ball.vy;
+
+    const groundY = groundHeightAt(ball.x);
+    let onGround = false;
+    if (ball.y + ball.radius > groundY) {
+      ball.y = groundY - ball.radius;
+      onGround = true;
+      if (ball.vy > 0) ball.vy *= -0.5;
+    }
+
     const friction = getFriction();
     ball.vx *= friction;
     ball.vy *= friction;
 
-    if (ball.y + ball.radius > canvas.height - 10) {
-      ball.y = canvas.height - 10 - ball.radius;
-      ball.vy *= -0.5;
-      if (Math.abs(ball.vy) < 1) {
+    if (onGround) {
+      const slope = groundSlopeAt(ball.x);
+      ball.vx += slope * SLOPE_ACCEL;
+      if (Math.abs(ball.vy) < 0.5 && Math.abs(ball.vx) < 0.5) {
+        ball.vx = 0;
         ball.vy = 0;
-        ball.vx *= 0.5;
-        if (Math.abs(ball.vx) < 0.5) {
-          ball.vx = 0;
-          ball.moving = false;
-        }
+        ball.moving = false;
       }
     }
 
     // obstacle collisions and effects
-    const ground = canvas.height - 10;
     obstacles.forEach(o => {
       if (o.type === 'tree') {
+        const ground = groundHeightAt(o.x);
         const left = o.x - o.width / 2;
         const right = o.x + o.width / 2;
         const top = ground - o.height;
@@ -250,8 +305,9 @@ function update() {
           ball.vx *= -0.5;
         }
       } else if (o.type === 'water') {
+        const ground = groundHeightAt(o.x + o.width / 2);
         if (ball.x > o.x && ball.x < o.x + o.width &&
-            ball.y + ball.radius > ground - o.depth) {
+            ball.y + ball.radius >= ground) {
           // water penalty: add stroke and drop ball behind water
           hits++;
           updateCounter();
@@ -261,15 +317,6 @@ function update() {
           ball.vx = 0;
           ball.vy = 0;
           ball.moving = false;
-        }
-      } else if (o.type === 'hill') {
-        if (ball.x > o.x && ball.x < o.x + o.width) {
-          const t = (ball.x - o.x) / o.width;
-          const heightAtX = ground - o.height * (1 - Math.abs(2 * t - 1));
-          if (ball.y + ball.radius > heightAtX) {
-            ball.y = heightAtX - ball.radius;
-            if (ball.vy > 0) ball.vy *= -0.5;
-          }
         }
       }
     });
@@ -288,12 +335,13 @@ function update() {
     }
   }
 
-  if (!ball.moving && !holeCompleted && Math.hypot(ball.x - hole.x, ball.y - hole.y) < hole.radius) {
-    holeCompleted = true;
-    scores.push(hits);
+  const distToHole = Math.hypot(ball.x - hole.x, ball.y - hole.y);
+  if (!holeCompleted && !ball.falling && distToHole < hole.radius && ball.y + ball.radius >= hole.y) {
+    ball.falling = true;
+    ball.moving = true;
     pars.push(hole.par);
-    updateScoreboard();
-    setTimeout(nextHole, 1000);
+    ball.vx = 0;
+    ball.vy = 0;
   }
 
   // adjust camera view to follow the ball once it passes the hole
@@ -311,7 +359,14 @@ function update() {
 function drawGround() {
   ctx.fillStyle = '#654321';
   const width = Math.max(canvas.width, hole.maxDistance + 100);
-  ctx.fillRect(0, canvas.height - 10, width, 10);
+  ctx.beginPath();
+  ctx.moveTo(0, canvas.height);
+  for (let x = 0; x <= width; x += 4) {
+    ctx.lineTo(x, groundHeightAt(x));
+  }
+  ctx.lineTo(width, canvas.height);
+  ctx.closePath();
+  ctx.fill();
 }
 
 function drawHole() {
@@ -328,12 +383,22 @@ function drawHole() {
   ctx.restore();
 
   // actual hole
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(0, hole.y, canvas.width, canvas.height - hole.y);
+  ctx.clip();
+  ctx.beginPath();
+  ctx.arc(hole.x, hole.y, hole.radius + 3, 0, Math.PI * 2);
+  ctx.fillStyle = '#ccc';
+  ctx.fill();
+
   ctx.beginPath();
   ctx.arc(hole.x, hole.y, hole.radius, 0, Math.PI * 2);
   ctx.fillStyle = 'black';
   ctx.fill();
+  ctx.restore();
 
-  if (!ball.moving && Math.hypot(ball.x - hole.x, ball.y - hole.y) < hole.radius) {
+  if (holeCompleted) {
     ctx.fillStyle = 'green';
     ctx.font = '24px Arial';
     const msg = currentHole > TOTAL_HOLES ? 'Game Over' : 'Hole Complete!';
@@ -342,6 +407,7 @@ function drawHole() {
 }
 
 function drawBall() {
+  if (holeCompleted) return;
   ctx.beginPath();
   ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
   ctx.fillStyle = '#3498db';
@@ -349,8 +415,8 @@ function drawBall() {
 }
 
 function drawObstacles() {
-  const ground = canvas.height - 10;
   obstacles.forEach(o => {
+    const ground = groundHeightAt(o.x + (o.width || 0) / 2);
     if (o.type === 'tree') {
       ctx.fillStyle = '#8B4513';
       ctx.fillRect(o.x - o.width / 2, ground - o.height, o.width, o.height);
@@ -360,17 +426,10 @@ function drawObstacles() {
       ctx.fill();
     } else if (o.type === 'water') {
       ctx.fillStyle = '#00bfff';
-      ctx.fillRect(o.x, ground - o.depth, o.width, o.depth);
+      ctx.fillRect(o.x, ground - 2, o.width, 2);
     } else if (o.type === 'bunker') {
       ctx.fillStyle = '#e0c068';
       ctx.fillRect(o.x, ground - o.depth, o.width, o.depth);
-    } else if (o.type === 'hill') {
-      ctx.fillStyle = '#8FBC8F';
-      ctx.beginPath();
-      ctx.moveTo(o.x, ground);
-      ctx.lineTo(o.x + o.width / 2, ground - o.height);
-      ctx.lineTo(o.x + o.width, ground);
-      ctx.fill();
     }
   });
 }
@@ -430,6 +489,8 @@ window.addEventListener('keydown', (e) => {
     ball.vx = 0;
     ball.vy = 0;
     ball.moving = false;
+    ball.radius = BALL_RADIUS;
+    ball.falling = false;
     power = 15;
     meterActive = false;
     powerBar.style.display = 'none';
