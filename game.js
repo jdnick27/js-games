@@ -501,8 +501,12 @@ function drawHole() {
   if (holeCompleted) {
     ctx.fillStyle = "green";
     ctx.font = "24px Arial";
-    const msg = currentHole > TOTAL_HOLES ? "Game Over" : "Hole Complete!";
-    ctx.fillText(msg, canvas.width / 2 - 60, canvas.height / 2);
+    let msg = currentHole > TOTAL_HOLES ? "Game Over" : "Hole Complete!";
+    if (hits === 1 && currentHole <= TOTAL_HOLES) {
+      msg = "That's your bad shot!";
+    }
+    const textWidth = ctx.measureText(msg).width;
+    ctx.fillText(msg, canvas.width / 2 - textWidth / 2, canvas.height / 2);
   }
 }
 
