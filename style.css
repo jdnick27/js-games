@@ -12,3 +12,7 @@ body {
     display: block;
     margin: 0 auto;
 }
+
+#counter {
+    font-weight: bold;
+}
