@@ -20,7 +20,8 @@ const ball = {
 };
 
 let angle = Math.PI / 4; // aiming angle in radians
-let power = 20;          // launch power
+let power = 20;          // displayed launch power
+const POWER_SCALE = 0.5; // scale factor for actual launch strength
 const GRAVITY = 0.4;
 const FRICTION = 0.99;
 
@@ -29,8 +30,9 @@ const DOUBLE_TIME = 300; // ms for double click
 
 function launch() {
   if (ball.moving) return;
-  ball.vx = Math.cos(angle) * power;
-  ball.vy = -Math.sin(angle) * power;
+  const scaled = power * POWER_SCALE;
+  ball.vx = Math.cos(angle) * scaled;
+  ball.vy = -Math.sin(angle) * scaled;
   ball.moving = true;
   hits++;
   updateCounter();
@@ -89,7 +91,7 @@ function drawBall() {
 
 function drawAim() {
   if (ball.moving) return;
-  const len = power * 2;
+  const len = power * 4; // larger visual meter
   ctx.strokeStyle = 'red';
   ctx.beginPath();
   ctx.moveTo(ball.x, ball.y);
