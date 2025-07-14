@@ -14,6 +14,7 @@ const hole = {
 let obstacles = [];
 
 const BALL_RADIUS = 10;
+const GROUND_THICKNESS = 20; // thickness of the ground from the bottom of the canvas
 
 const ball = {
   x: 50,
@@ -83,7 +84,7 @@ function createObstacle(type, minX, maxX, props, avoid = []) {
 function setupCourse() {
   // randomize hole and obstacle positions for each hole
   hole.x = randomRange(canvas.width * 0.7, canvas.width - 80);
-  hole.y = canvas.height - 10;
+  hole.y = canvas.height - GROUND_THICKNESS;
   // distance the ball can travel past the hole before penalty
   hole.maxOvershoot = randomRange(canvas.width * 0.2, canvas.width * 0.4);
   hole.maxDistance = hole.x + hole.maxOvershoot;
@@ -103,7 +104,7 @@ function setupCourse() {
   obstacles.push(createObstacle('hill', canvas.width * 0.5, canvas.width * 0.7, { width: 50, height: 30 }, avoidGreen));
 
   ball.x = 50;
-  ball.y = canvas.height - 20;
+  ball.y = canvas.height - GROUND_THICKNESS - BALL_RADIUS;
   viewOffset = 0;
 }
 
@@ -175,7 +176,7 @@ let bunkerPenaltyApplied = false;
 const SLOPE_ACCEL = 0.2;
 
 function groundHeightAt(x) {
-  let y = canvas.height - 10;
+  let y = canvas.height - GROUND_THICKNESS;
   obstacles.forEach(o => {
     if (o.type === 'hill' && x >= o.x && x <= o.x + o.width) {
       const t = (x - o.x) / o.width;
@@ -202,7 +203,7 @@ function ballInBunker() {
     o.type === 'bunker' &&
     ball.x > o.x &&
     ball.x < o.x + o.width &&
-    ball.y + ball.radius > canvas.height - 10 - o.depth);
+    ball.y + ball.radius > canvas.height - GROUND_THICKNESS - o.depth);
 }
 
 function getFriction() {
@@ -327,7 +328,7 @@ function update() {
       updateCounter();
       // Place ball next to the out of bounds marker but still in bounds
       ball.x = hole.maxDistance - 30;
-      ball.y = canvas.height - 20;
+      ball.y = canvas.height - GROUND_THICKNESS - BALL_RADIUS;
       ball.vx = 0;
       ball.vy = 0;
       ball.moving = false;
@@ -489,7 +490,7 @@ window.addEventListener('keydown', (e) => {
   if (e.code === 'ArrowRight' && !ball.moving) angle += 0.05;
   if (e.code === 'KeyR') {
     ball.x = 50;
-    ball.y = canvas.height - 20;
+    ball.y = canvas.height - GROUND_THICKNESS - BALL_RADIUS;
     ball.vx = 0;
     ball.vy = 0;
     ball.moving = false;
