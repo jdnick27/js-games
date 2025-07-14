@@ -228,7 +228,7 @@ function ballInBunker() {
     o.type === 'bunker' &&
     ball.x > o.x &&
     ball.x < o.x + o.width &&
-    ball.y + ball.radius > canvas.height - GROUND_THICKNESS - o.depth);
+    ball.y + ball.radius > groundHeightAt(ball.x) - o.depth);
 }
 
 function getFriction() {
@@ -333,22 +333,23 @@ function update() {
           }
           ball.vx *= -0.5;
         }
-      } else if (o.type === 'water') {
-        const ground = groundHeightAt(o.x + o.width / 2);
-        if (ball.x > o.x && ball.x < o.x + o.width &&
-            ball.y + ball.radius >= ground) {
-          // water penalty: add stroke and drop ball behind water
-          hits++;
-          updateCounter();
-          hazardPenalty = true;
+        } else if (o.type === 'water') {
+          if (ball.x > o.x && ball.x < o.x + o.width) {
+            const ground = groundHeightAt(ball.x);
+            if (ball.y + ball.radius >= ground) {
+              // water penalty: add stroke and drop ball behind water
+              hits++;
+              updateCounter();
+              hazardPenalty = true;
           ball.x = o.x - ball.radius - 5;
-          if (ball.x < ball.radius) ball.x = ball.radius;
-          ball.y = ground - ball.radius;
-          ball.vx = 0;
-          ball.vy = 0;
-          ball.moving = false;
+              if (ball.x < ball.radius) ball.x = ball.radius;
+              ball.y = ground - ball.radius;
+              ball.vx = 0;
+              ball.vy = 0;
+              ball.moving = false;
+            }
+          }
         }
-      }
     });
 
     // penalty when ball goes too far past the hole
@@ -447,24 +448,42 @@ function drawBall() {
 
 function drawObstacles() {
   obstacles.forEach(o => {
-    const ground = groundHeightAt(o.x + (o.width || 0) / 2);
+    const groundCenter = groundHeightAt(o.x + (o.width || 0) / 2);
     if (o.type === 'tree') {
       ctx.fillStyle = '#8B4513';
       const trunkWidth = o.width * 0.4;
-      ctx.fillRect(o.x - trunkWidth / 2, ground - o.height, trunkWidth, o.height);
+      ctx.fillRect(o.x - trunkWidth / 2, groundCenter - o.height, trunkWidth, o.height);
       ctx.fillStyle = '#228B22';
       const r = o.width;
       ctx.beginPath();
-      ctx.arc(o.x, ground - o.height, r, 0, Math.PI * 2);
-      ctx.arc(o.x - r * 0.6, ground - o.height + r * 0.3, r * 0.8, 0, Math.PI * 2);
-      ctx.arc(o.x + r * 0.6, ground - o.height + r * 0.3, r * 0.8, 0, Math.PI * 2);
+      ctx.arc(o.x, groundCenter - o.height, r, 0, Math.PI * 2);
+      ctx.arc(o.x - r * 0.6, groundCenter - o.height + r * 0.3, r * 0.8, 0, Math.PI * 2);
+      ctx.arc(o.x + r * 0.6, groundCenter - o.height + r * 0.3, r * 0.8, 0, Math.PI * 2);
       ctx.fill();
     } else if (o.type === 'water') {
       ctx.fillStyle = '#00bfff';
-      ctx.fillRect(o.x, ground - 2, o.width, 2);
+      ctx.beginPath();
+      ctx.moveTo(o.x, groundHeightAt(o.x));
+      for (let x = o.x; x <= o.x + o.width; x += 2) {
+        ctx.lineTo(x, groundHeightAt(x));
+      }
+      for (let x = o.x + o.width; x >= o.x; x -= 2) {
+        ctx.lineTo(x, groundHeightAt(x) - 2);
+      }
+      ctx.closePath();
+      ctx.fill();
     } else if (o.type === 'bunker') {
       ctx.fillStyle = '#e0c068';
-      ctx.fillRect(o.x, ground - o.depth, o.width, o.depth);
+      ctx.beginPath();
+      ctx.moveTo(o.x, groundHeightAt(o.x));
+      for (let x = o.x; x <= o.x + o.width; x += 2) {
+        ctx.lineTo(x, groundHeightAt(x));
+      }
+      for (let x = o.x + o.width; x >= o.x; x -= 2) {
+        ctx.lineTo(x, groundHeightAt(x) - o.depth);
+      }
+      ctx.closePath();
+      ctx.fill();
     }
   });
 }
