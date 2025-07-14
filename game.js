@@ -674,6 +674,24 @@ window.addEventListener("keydown", (e) => {
   }
 });
 
-updateCounter();
-updateHoleInfo();
-loop();
+if (typeof module === "undefined") {
+  updateCounter();
+  updateHoleInfo();
+  loop();
+} else {
+  /* global module */
+  module.exports = {
+    randomRange,
+    obstacleRange,
+    obstaclesOverlap,
+    rangesOverlap,
+    groundHeightAt,
+    groundSlopeAt,
+    ballInBunker,
+    getFriction,
+    GROUND_THICKNESS,
+    obstacles,
+    ball,
+    hole,
+  };
+}
