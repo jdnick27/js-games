@@ -191,9 +191,12 @@ function update() {
       } else if (o.type === 'water') {
         if (ball.x > o.x && ball.x < o.x + o.width &&
             ball.y + ball.radius > ground - o.depth) {
-          // reset ball on water hazard
-          ball.x = 50;
-          ball.y = canvas.height - 20;
+          // water penalty: add stroke and drop ball behind water
+          hits++;
+          updateCounter();
+          ball.x = o.x - ball.radius - 5;
+          if (ball.x < ball.radius) ball.x = ball.radius;
+          ball.y = ground - ball.radius;
           ball.vx = 0;
           ball.vy = 0;
           ball.moving = false;
