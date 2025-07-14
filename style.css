@@ -25,3 +25,20 @@ html, body {
 #counter {
     font-weight: bold;
 }
+
+#powerBar {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 200px;
+    height: 20px;
+    background: #ccc;
+    display: none;
+}
+
+#powerLevel {
+    height: 100%;
+    width: 0%;
+    background: #e74c3c;
+}
