@@ -419,10 +419,14 @@ function drawObstacles() {
     const ground = groundHeightAt(o.x + (o.width || 0) / 2);
     if (o.type === 'tree') {
       ctx.fillStyle = '#8B4513';
-      ctx.fillRect(o.x - o.width / 2, ground - o.height, o.width, o.height);
+      const trunkWidth = o.width * 0.4;
+      ctx.fillRect(o.x - trunkWidth / 2, ground - o.height, trunkWidth, o.height);
       ctx.fillStyle = '#228B22';
+      const r = o.width;
       ctx.beginPath();
-      ctx.arc(o.x, ground - o.height, o.width, 0, Math.PI * 2);
+      ctx.arc(o.x, ground - o.height, r, 0, Math.PI * 2);
+      ctx.arc(o.x - r * 0.6, ground - o.height + r * 0.3, r * 0.8, 0, Math.PI * 2);
+      ctx.arc(o.x + r * 0.6, ground - o.height + r * 0.3, r * 0.8, 0, Math.PI * 2);
       ctx.fill();
     } else if (o.type === 'water') {
       ctx.fillStyle = '#00bfff';
