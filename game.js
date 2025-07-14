@@ -32,6 +32,7 @@ let currentHole = 1;
 let hits = 0;
 let scores = [];
 let holeCompleted = false;
+let viewOffset = 0;    // camera offset to keep ball in view
 
 function resizeCanvas() {
   canvas.width = window.innerWidth;
@@ -46,6 +47,9 @@ function setupCourse() {
   // randomize hole and obstacle positions for each hole
   hole.x = randomRange(canvas.width * 0.7, canvas.width - 80);
   hole.y = canvas.height - 10;
+  // distance the ball can travel past the hole before penalty
+  hole.maxOvershoot = randomRange(canvas.width * 0.2, canvas.width * 0.4);
+  hole.maxDistance = hole.x + hole.maxOvershoot;
   obstacles = [
     { type: 'tree', x: randomRange(canvas.width * 0.2, canvas.width * 0.4), width: 20, height: 60 },
     { type: 'water', x: randomRange(canvas.width * 0.4, canvas.width * 0.6), width: 60, depth: 15 },
@@ -54,6 +58,7 @@ function setupCourse() {
   ];
   ball.x = 50;
   ball.y = canvas.height - 20;
+  viewOffset = 0;
 }
 
 window.addEventListener('resize', () => {
@@ -212,6 +217,19 @@ function update() {
         }
       }
     });
+
+    // penalty when ball goes too far past the hole
+    if (ball.x > hole.maxDistance) {
+      hits++;
+      updateCounter();
+      // Place ball next to the out of bounds marker but still in bounds
+      ball.x = hole.maxDistance - 30;
+      ball.y = canvas.height - 20;
+      ball.vx = 0;
+      ball.vy = 0;
+      ball.moving = false;
+      viewOffset = 0;
+    }
   }
 
   if (!ball.moving && !holeCompleted && Math.hypot(ball.x - hole.x, ball.y - hole.y) < hole.radius) {
@@ -220,11 +238,23 @@ function update() {
     updateScoreboard();
     setTimeout(nextHole, 1000);
   }
+
+  // adjust camera view to follow the ball once it passes the hole
+  if (ball.x > hole.x) {
+    if (ball.x - viewOffset > canvas.width - 100) {
+      viewOffset = ball.x - (canvas.width - 100);
+    }
+  } else {
+    if (ball.x - viewOffset < 100) {
+      viewOffset = Math.max(0, ball.x - 100);
+    }
+  }
 }
 
 function drawGround() {
   ctx.fillStyle = '#654321';
-  ctx.fillRect(0, canvas.height - 10, canvas.width, 10);
+  const width = Math.max(canvas.width, hole.maxDistance + 100);
+  ctx.fillRect(0, canvas.height - 10, width, 10);
 }
 
 function drawHole() {
@@ -317,11 +347,14 @@ function drawAim() {
 function loop() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   update();
+  ctx.save();
+  ctx.translate(-viewOffset, 0);
   drawGround();
   drawObstacles();
   drawHole();
   drawBall();
   drawAim();
+  ctx.restore();
   requestAnimationFrame(loop);
 }
 
