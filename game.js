@@ -12,6 +12,7 @@ const hole = {
 };
 
 let obstacles = [];
+let elevationWaves = [];
 
 const BALL_RADIUS = 10;
 const TREE_BASE_WIDTH = 20;
@@ -56,6 +57,17 @@ function randomRange(min, max) {
   return Math.random() * (max - min) + min;
 }
 
+function generateElevation() {
+  elevationWaves = [];
+  const count = 3;
+  for (let i = 0; i < count; i++) {
+    const amp = randomRange(10, 30) * (Math.random() < 0.5 ? -1 : 1);
+    const wavelength = randomRange(canvas.width * 0.3, canvas.width * 0.8);
+    const phase = randomRange(0, Math.PI * 2);
+    elevationWaves.push({ amp, wavelength, phase });
+  }
+}
+
 function obstacleRange(ob) {
   if (ob.type === 'tree') {
     return { left: ob.x - ob.width / 2, right: ob.x + ob.width / 2 };
@@ -88,8 +100,9 @@ function createObstacle(type, minX, maxX, props, avoid = []) {
 
 function setupCourse() {
   // randomize hole and obstacle positions for each hole
+  generateElevation();
   hole.x = randomRange(canvas.width * 0.7, canvas.width - 80);
-  hole.y = canvas.height - GROUND_THICKNESS;
+  hole.y = groundHeightAt(hole.x);
   // distance the ball can travel past the hole before penalty
   hole.maxOvershoot = randomRange(canvas.width * 0.2, canvas.width * 0.4);
   hole.maxDistance = hole.x + hole.maxOvershoot;
@@ -126,7 +139,7 @@ function setupCourse() {
   obstacles.push(createObstacle('bunker', canvas.width * 0.6, canvas.width * 0.8, { width: 80, depth: 12 }, avoidGreen));
 
   ball.x = 50;
-  ball.y = canvas.height - GROUND_THICKNESS - BALL_RADIUS;
+  ball.y = groundHeightAt(ball.x) - BALL_RADIUS;
   viewOffset = 0;
   prevX = ball.x;
   prevY = ball.y;
@@ -200,8 +213,22 @@ let bunkerPenaltyApplied = false;
 // how strongly gravity pulls the ball along slopes
 const SLOPE_ACCEL = 0.2;
 
+function baseElevationAt(x) {
+  return elevationWaves.reduce(
+    (sum, w) => sum + w.amp * Math.sin((x + w.phase) * 2 * Math.PI / w.wavelength),
+    0
+  );
+}
+
+function baseSlopeAt(x) {
+  return elevationWaves.reduce(
+    (sum, w) => sum + w.amp * (2 * Math.PI / w.wavelength) * Math.cos((x + w.phase) * 2 * Math.PI / w.wavelength),
+    0
+  );
+}
+
 function groundHeightAt(x) {
-  let y = canvas.height - GROUND_THICKNESS;
+  let y = canvas.height - GROUND_THICKNESS - baseElevationAt(x);
   obstacles.forEach(o => {
     if (o.type === 'hill' && x >= o.x && x <= o.x + o.width) {
       const t = (x - o.x) / o.width;
@@ -213,11 +240,11 @@ function groundHeightAt(x) {
 }
 
 function groundSlopeAt(x) {
-  let slope = 0;
+  let slope = -baseSlopeAt(x);
   obstacles.forEach(o => {
     if (o.type === 'hill' && x >= o.x && x <= o.x + o.width) {
       const t = (x - o.x) / o.width;
-      slope = -o.height * Math.PI / o.width * Math.cos(Math.PI * t);
+      slope += -o.height * Math.PI / o.width * Math.cos(Math.PI * t);
     }
   });
   return slope;
