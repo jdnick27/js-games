@@ -1,6 +1,15 @@
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 
+let hits = 0;
+const counterEl = document.getElementById('counter');
+
+function updateCounter() {
+  if (counterEl) {
+    counterEl.textContent = `Hits: ${hits}`;
+  }
+}
+
 const ball = {
   x: 50,
   y: canvas.height - 20,
@@ -23,6 +32,8 @@ function launch() {
   ball.vx = Math.cos(angle) * power;
   ball.vy = -Math.sin(angle) * power;
   ball.moving = true;
+  hits++;
+  updateCounter();
 }
 
 function update() {
@@ -110,4 +121,5 @@ window.addEventListener('keydown', (e) => {
   }
 });
 
+updateCounter();
 loop();
