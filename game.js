@@ -372,6 +372,10 @@ function drawHole() {
   ctx.restore();
 
   // actual hole
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(0, hole.y, canvas.width, canvas.height - hole.y);
+  ctx.clip();
   ctx.beginPath();
   ctx.arc(hole.x, hole.y, hole.radius + 3, 0, Math.PI * 2);
   ctx.fillStyle = '#ccc';
@@ -381,6 +385,7 @@ function drawHole() {
   ctx.arc(hole.x, hole.y, hole.radius, 0, Math.PI * 2);
   ctx.fillStyle = 'black';
   ctx.fill();
+  ctx.restore();
 
   if (holeCompleted) {
     ctx.fillStyle = 'green';
