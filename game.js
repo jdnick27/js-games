@@ -4,19 +4,23 @@ const ctx = canvas.getContext('2d');
 const hole = {
   x: 0,
   y: 0,
-  radius: 8,
-  greenRadius: 40
+  radius: 12,
+  greenRadius: 80,
+  cupDepth: 15
 };
 
 let obstacles = [];
 
+const BALL_RADIUS = 10;
+
 const ball = {
   x: 50,
   y: 0, // will be set in setupCourse
-  radius: 10,
+  radius: BALL_RADIUS,
   vx: 0,
   vy: 0,
-  moving: false
+  moving: false,
+  falling: false
 };
 
 // DOM elements
@@ -125,6 +129,8 @@ function nextHole() {
   updateCounter();
   updateHoleInfo();
   setupCourse();
+  ball.radius = BALL_RADIUS;
+  ball.falling = false;
 }
 
 let angle = Math.PI / 4; // aiming angle in radians
@@ -169,6 +175,22 @@ function launch() {
 }
 
 function update() {
+  if (ball.falling) {
+    ball.vy += GRAVITY;
+    ball.y += ball.vy;
+    if (ball.radius > 0.5) {
+      ball.radius *= 0.95;
+    }
+    if (ball.y - ball.radius > hole.y + hole.cupDepth) {
+      ball.falling = false;
+      ball.moving = false;
+      holeCompleted = true;
+      scores.push(hits);
+      updateScoreboard();
+      setTimeout(nextHole, 1000);
+    }
+    return;
+  }
   if (meterActive) {
     meterPercent += METER_SPEED * meterDirection;
     if (meterPercent >= 100) {
@@ -257,11 +279,12 @@ function update() {
     }
   }
 
-  if (!ball.moving && !holeCompleted && Math.hypot(ball.x - hole.x, ball.y - hole.y) < hole.radius) {
-    holeCompleted = true;
-    scores.push(hits);
-    updateScoreboard();
-    setTimeout(nextHole, 1000);
+  const distToHole = Math.hypot(ball.x - hole.x, ball.y - hole.y);
+  if (!holeCompleted && !ball.falling && distToHole < hole.radius && ball.y + ball.radius >= hole.y) {
+    ball.falling = true;
+    ball.moving = true;
+    ball.vx = 0;
+    ball.vy = 0;
   }
 
   // adjust camera view to follow the ball once it passes the hole
@@ -297,11 +320,16 @@ function drawHole() {
 
   // actual hole
   ctx.beginPath();
+  ctx.arc(hole.x, hole.y, hole.radius + 3, 0, Math.PI * 2);
+  ctx.fillStyle = '#ccc';
+  ctx.fill();
+
+  ctx.beginPath();
   ctx.arc(hole.x, hole.y, hole.radius, 0, Math.PI * 2);
   ctx.fillStyle = 'black';
   ctx.fill();
 
-  if (!ball.moving && Math.hypot(ball.x - hole.x, ball.y - hole.y) < hole.radius) {
+  if (holeCompleted) {
     ctx.fillStyle = 'green';
     ctx.font = '24px Arial';
     const msg = currentHole > TOTAL_HOLES ? 'Game Over' : 'Hole Complete!';
@@ -310,6 +338,7 @@ function drawHole() {
 }
 
 function drawBall() {
+  if (holeCompleted) return;
   ctx.beginPath();
   ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
   ctx.fillStyle = '#3498db';
@@ -398,6 +427,8 @@ window.addEventListener('keydown', (e) => {
     ball.vx = 0;
     ball.vy = 0;
     ball.moving = false;
+    ball.radius = BALL_RADIUS;
+    ball.falling = false;
     power = 15;
     meterActive = false;
     powerBar.style.display = 'none';
