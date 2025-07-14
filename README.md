@@ -23,3 +23,19 @@ strokes for each hole are recorded on the scoreboard shown on the right side of
 the screen along with how many strokes over or under par you were. When the
 ball drops into the cup the hole is complete and the next hole will
 automatically load until all 18 are finished.
+
+## Development
+
+Run `npm install` to install development dependencies. The project uses [Prettier](https://prettier.io/) for formatting and `jshint` for basic linting.
+
+Format the source files with:
+
+```bash
+npx prettier -w *.js *.html *.css README.md
+```
+
+Check the main script for common mistakes:
+
+```bash
+npx jshint game.js
+```

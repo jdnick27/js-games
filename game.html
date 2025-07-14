@@ -1,26 +1,28 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>2D Golf Game</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
     <div id="overlay">
-        <h1>2D Golf</h1>
-        <p>Use ←/→ to adjust angle. Press Space to start the power meter and
-            press again to launch.</p>
-        <p id="holeInfo">Hole 1/18 - Par 4 - 0yd</p>
-        <p id="counter">Hits: 0</p>
+      <h1>2D Golf</h1>
+      <p>
+        Use ←/→ to adjust angle. Press Space to start the power meter and press
+        again to launch.
+      </p>
+      <p id="holeInfo">Hole 1/18 - Par 4 - 0yd</p>
+      <p id="counter">Hits: 0</p>
     </div>
     <div id="scoreboard">
-        <h2>Scoreboard</h2>
-        <ol id="scores"></ol>
+      <h2>Scoreboard</h2>
+      <ol id="scores"></ol>
     </div>
     <div id="powerBar"><div id="powerLevel"></div></div>
     <a id="homeLink" href="index.html">Back to Home</a>
     <canvas id="game"></canvas>
     <script src="game.js"></script>
-</body>
+  </body>
 </html>

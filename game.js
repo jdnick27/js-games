@@ -1,5 +1,5 @@
-const canvas = document.getElementById('game');
-const ctx = canvas.getContext('2d');
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
 
 const hole = {
   x: 0,
@@ -8,7 +8,7 @@ const hole = {
   greenRadius: 80,
   cupDepth: 15,
   par: 4,
-  distance: 0
+  distance: 0,
 };
 
 let obstacles = [];
@@ -25,15 +25,15 @@ const ball = {
   vx: 0,
   vy: 0,
   moving: false,
-  falling: false
+  falling: false,
 };
 
 // DOM elements
-const counterEl = document.getElementById('counter');
-const holeInfoEl = document.getElementById('holeInfo');
-const scoresEl = document.getElementById('scores');
-const powerBar = document.getElementById('powerBar');
-const powerLevel = document.getElementById('powerLevel');
+const counterEl = document.getElementById("counter");
+const holeInfoEl = document.getElementById("holeInfo");
+const scoresEl = document.getElementById("scores");
+const powerBar = document.getElementById("powerBar");
+const powerLevel = document.getElementById("powerLevel");
 
 // Game state
 const TOTAL_HOLES = 18;
@@ -42,7 +42,7 @@ let hits = 0;
 let scores = [];
 let pars = [];
 let holeCompleted = false;
-let viewOffset = 0;    // camera offset to keep ball in view
+let viewOffset = 0; // camera offset to keep ball in view
 let prevX = 50;
 let prevY = 0;
 let hazardPenalty = false;
@@ -57,7 +57,7 @@ function randomRange(min, max) {
 }
 
 function obstacleRange(ob) {
-  if (ob.type === 'tree') {
+  if (ob.type === "tree") {
     return { left: ob.x - ob.width / 2, right: ob.x + ob.width / 2 };
   }
   return { left: ob.x, right: ob.x + ob.width };
@@ -80,9 +80,14 @@ function createObstacle(type, minX, maxX, props, avoid = []) {
     const x = randomRange(minX, maxX);
     ob = { type, x, ...props };
     attempts++;
-  } while ((obstacles.some(o => obstaclesOverlap(o, ob)) ||
-            avoid.some(r => rangesOverlap(obstacleRange(ob), r))) &&
-           attempts < 100);
+    const overlapsExisting = obstacles.some((o) => obstaclesOverlap(o, ob));
+    const overlapsAvoid = avoid.some((r) =>
+      rangesOverlap(obstacleRange(ob), r),
+    );
+    if (!overlapsExisting && !overlapsAvoid) {
+      break;
+    }
+  } while (attempts < 100);
   return ob;
 }
 
@@ -102,28 +107,56 @@ function setupCourse() {
     hole.par = 5;
   }
 
-  const avoidGreen = [{
-    left: hole.x - hole.greenRadius,
-    right: hole.x + hole.greenRadius
-  }];
+  const avoidGreen = [
+    {
+      left: hole.x - hole.greenRadius,
+      right: hole.x + hole.greenRadius,
+    },
+  ];
 
   obstacles = [];
   const treeCount = Math.floor(randomRange(1, 4));
   for (let i = 0; i < treeCount; i++) {
     const scale = randomRange(1.5, 3);
-    obstacles.push(createObstacle(
-      'tree',
-      canvas.width * 0.2,
-      canvas.width * 0.4,
-      { width: TREE_BASE_WIDTH * scale, height: TREE_BASE_HEIGHT * scale },
-      avoidGreen
-    ));
+    obstacles.push(
+      createObstacle(
+        "tree",
+        canvas.width * 0.2,
+        canvas.width * 0.4,
+        { width: TREE_BASE_WIDTH * scale, height: TREE_BASE_HEIGHT * scale },
+        avoidGreen,
+      ),
+    );
   }
   // Place the hill before water and sand so they avoid its space
-  obstacles.push(createObstacle('hill', canvas.width * 0.5, canvas.width * 0.7, { width: 100, height: 40 }, avoidGreen));
+  obstacles.push(
+    createObstacle(
+      "hill",
+      canvas.width * 0.5,
+      canvas.width * 0.7,
+      { width: 100, height: 40 },
+      avoidGreen,
+    ),
+  );
   // Water hazards should appear level with the ground so no depth is needed
-  obstacles.push(createObstacle('water', canvas.width * 0.4, canvas.width * 0.6, { width: 60 }, avoidGreen));
-  obstacles.push(createObstacle('bunker', canvas.width * 0.6, canvas.width * 0.8, { width: 80, depth: 12 }, avoidGreen));
+  obstacles.push(
+    createObstacle(
+      "water",
+      canvas.width * 0.4,
+      canvas.width * 0.6,
+      { width: 60 },
+      avoidGreen,
+    ),
+  );
+  obstacles.push(
+    createObstacle(
+      "bunker",
+      canvas.width * 0.6,
+      canvas.width * 0.8,
+      { width: 80, depth: 12 },
+      avoidGreen,
+    ),
+  );
 
   ball.x = 50;
   ball.y = canvas.height - GROUND_THICKNESS - BALL_RADIUS;
@@ -132,7 +165,7 @@ function setupCourse() {
   prevY = ball.y;
 }
 
-window.addEventListener('resize', () => {
+window.addEventListener("resize", () => {
   resizeCanvas();
   setupCourse();
   updateHoleInfo();
@@ -156,19 +189,21 @@ function updateHoleInfo() {
 
 function updateScoreboard() {
   if (scoresEl) {
-    scoresEl.innerHTML = scores.map((s, i) => {
-      const par = pars[i];
-      const diff = s - par;
-      const diffStr = diff === 0 ? 'E' : (diff > 0 ? `+${diff}` : diff);
-      return `<li>Hole ${i + 1}: ${s} (${diffStr})</li>`;
-    }).join('');
+    scoresEl.innerHTML = scores
+      .map((s, i) => {
+        const par = pars[i];
+        const diff = s - par;
+        const diffStr = diff === 0 ? "E" : diff > 0 ? `+${diff}` : diff;
+        return `<li>Hole ${i + 1}: ${s} (${diffStr})</li>`;
+      })
+      .join("");
   }
 }
 
 function nextHole() {
   currentHole++;
   if (currentHole > TOTAL_HOLES) {
-    if (holeInfoEl) holeInfoEl.textContent = 'Game Over';
+    if (holeInfoEl) holeInfoEl.textContent = "Game Over";
     return;
   }
   hits = 0;
@@ -196,8 +231,8 @@ function restartHole() {
   ball.falling = false;
   power = 15;
   meterActive = false;
-  powerBar.style.display = 'none';
-  powerLevel.style.width = '0%';
+  powerBar.style.display = "none";
+  powerLevel.style.width = "0%";
   hazardPenalty = false;
   viewOffset = 0;
   prevX = ball.x;
@@ -206,13 +241,13 @@ function restartHole() {
 
 let angle = Math.PI / 4; // aiming angle in radians
 
-let power = 10;                // selected launch power
-const MAX_POWER = 50;          // maximum launch strength shown by meter
-const POWER_SCALE = 0.5;       // scale factor for actual launch strength
+let power = 10; // selected launch power
+const MAX_POWER = 50; // maximum launch strength shown by meter
+const POWER_SCALE = 0.5; // scale factor for actual launch strength
 let meterActive = false;
 let meterPercent = 0;
 let meterDirection = 1;
-const METER_SPEED = 2;         // percent per frame
+const METER_SPEED = 2; // percent per frame
 const GRAVITY = 0.4;
 // Friction values for different surfaces
 const FRICTION_NORMAL = 0.99;
@@ -225,8 +260,8 @@ const SLOPE_ACCEL = 0.2;
 
 function groundHeightAt(x) {
   let y = canvas.height - GROUND_THICKNESS;
-  obstacles.forEach(o => {
-    if (o.type === 'hill' && x >= o.x && x <= o.x + o.width) {
+  obstacles.forEach((o) => {
+    if (o.type === "hill" && x >= o.x && x <= o.x + o.width) {
       const t = (x - o.x) / o.width;
       const height = o.height * Math.sin(Math.PI * t);
       y -= height;
@@ -237,21 +272,23 @@ function groundHeightAt(x) {
 
 function groundSlopeAt(x) {
   let slope = 0;
-  obstacles.forEach(o => {
-    if (o.type === 'hill' && x >= o.x && x <= o.x + o.width) {
+  obstacles.forEach((o) => {
+    if (o.type === "hill" && x >= o.x && x <= o.x + o.width) {
       const t = (x - o.x) / o.width;
-      slope = -o.height * Math.PI / o.width * Math.cos(Math.PI * t);
+      slope = ((-o.height * Math.PI) / o.width) * Math.cos(Math.PI * t);
     }
   });
   return slope;
 }
 
 function ballInBunker() {
-  return obstacles.some(o =>
-    o.type === 'bunker' &&
-    ball.x > o.x &&
-    ball.x < o.x + o.width &&
-    ball.y + ball.radius > groundHeightAt(ball.x) - o.depth);
+  return obstacles.some(
+    (o) =>
+      o.type === "bunker" &&
+      ball.x > o.x &&
+      ball.x < o.x + o.width &&
+      ball.y + ball.radius > groundHeightAt(ball.x) - o.depth,
+  );
 }
 
 function getFriction() {
@@ -260,7 +297,6 @@ function getFriction() {
   if (dist < hole.greenRadius) return FRICTION_GREEN;
   return FRICTION_NORMAL;
 }
-
 
 function launch() {
   if (ball.moving) return;
@@ -301,7 +337,7 @@ function update() {
       meterPercent = 0;
       meterDirection = 1;
     }
-    powerLevel.style.width = meterPercent + '%';
+    powerLevel.style.width = meterPercent + "%";
   }
 
   if (!ball.moving && ballInBunker()) {
@@ -341,14 +377,18 @@ function update() {
     }
 
     // obstacle collisions and effects
-    obstacles.forEach(o => {
-      if (o.type === 'tree') {
+    obstacles.forEach((o) => {
+      if (o.type === "tree") {
         const ground = groundHeightAt(o.x);
         const left = o.x - o.width / 2;
         const right = o.x + o.width / 2;
         const top = ground - o.height;
-        if (ball.y + ball.radius > top && ball.y - ball.radius < ground &&
-            ball.x + ball.radius > left && ball.x - ball.radius < right) {
+        if (
+          ball.y + ball.radius > top &&
+          ball.y - ball.radius < ground &&
+          ball.x + ball.radius > left &&
+          ball.x - ball.radius < right
+        ) {
           if (ball.x < o.x) {
             ball.x = left - ball.radius;
           } else {
@@ -356,23 +396,23 @@ function update() {
           }
           ball.vx *= -0.5;
         }
-        } else if (o.type === 'water') {
-          if (ball.x > o.x && ball.x < o.x + o.width) {
-            const ground = groundHeightAt(ball.x);
-            if (ball.y + ball.radius >= ground) {
-              // water penalty: add stroke and drop ball behind water
-              hits++;
-              updateCounter();
-              hazardPenalty = true;
-          ball.x = o.x - ball.radius - 5;
-              if (ball.x < ball.radius) ball.x = ball.radius;
-              ball.y = ground - ball.radius;
-              ball.vx = 0;
-              ball.vy = 0;
-              ball.moving = false;
-            }
+      } else if (o.type === "water") {
+        if (ball.x > o.x && ball.x < o.x + o.width) {
+          const ground = groundHeightAt(ball.x);
+          if (ball.y + ball.radius >= ground) {
+            // water penalty: add stroke and drop ball behind water
+            hits++;
+            updateCounter();
+            hazardPenalty = true;
+            ball.x = o.x - ball.radius - 5;
+            if (ball.x < ball.radius) ball.x = ball.radius;
+            ball.y = ground - ball.radius;
+            ball.vx = 0;
+            ball.vy = 0;
+            ball.moving = false;
           }
         }
+      }
     });
 
     // penalty when ball goes too far past the hole
@@ -391,7 +431,12 @@ function update() {
   }
 
   const distToHole = Math.hypot(ball.x - hole.x, ball.y - hole.y);
-  if (!holeCompleted && !ball.falling && distToHole < hole.radius && ball.y + ball.radius >= hole.y) {
+  if (
+    !holeCompleted &&
+    !ball.falling &&
+    distToHole < hole.radius &&
+    ball.y + ball.radius >= hole.y
+  ) {
     ball.falling = true;
     ball.moving = true;
     pars.push(hole.par);
@@ -412,7 +457,7 @@ function update() {
 }
 
 function drawGround() {
-  ctx.fillStyle = '#654321';
+  ctx.fillStyle = "#654321";
   const width = Math.max(canvas.width, hole.maxDistance + 100);
   ctx.beginPath();
   ctx.moveTo(0, canvas.height);
@@ -433,7 +478,7 @@ function drawHole() {
   ctx.clip();
   ctx.beginPath();
   ctx.ellipse(hole.x, hole.y, hole.greenRadius, vertRadius, 0, 0, Math.PI * 2);
-  ctx.fillStyle = '#3cb371';
+  ctx.fillStyle = "#3cb371";
   ctx.fill();
   ctx.restore();
 
@@ -444,19 +489,19 @@ function drawHole() {
   ctx.clip();
   ctx.beginPath();
   ctx.arc(hole.x, hole.y, hole.radius + 3, 0, Math.PI * 2);
-  ctx.fillStyle = '#ccc';
+  ctx.fillStyle = "#ccc";
   ctx.fill();
 
   ctx.beginPath();
   ctx.arc(hole.x, hole.y, hole.radius, 0, Math.PI * 2);
-  ctx.fillStyle = 'black';
+  ctx.fillStyle = "black";
   ctx.fill();
   ctx.restore();
 
   if (holeCompleted) {
-    ctx.fillStyle = 'green';
-    ctx.font = '24px Arial';
-    const msg = currentHole > TOTAL_HOLES ? 'Game Over' : 'Hole Complete!';
+    ctx.fillStyle = "green";
+    ctx.font = "24px Arial";
+    const msg = currentHole > TOTAL_HOLES ? "Game Over" : "Hole Complete!";
     ctx.fillText(msg, canvas.width / 2 - 60, canvas.height / 2);
   }
 }
@@ -465,26 +510,43 @@ function drawBall() {
   if (holeCompleted) return;
   ctx.beginPath();
   ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
-  ctx.fillStyle = '#3498db';
+  ctx.fillStyle = "#3498db";
   ctx.fill();
 }
 
 function drawObstacles() {
-  obstacles.forEach(o => {
+  obstacles.forEach((o) => {
     const groundCenter = groundHeightAt(o.x + (o.width || 0) / 2);
-    if (o.type === 'tree') {
-      ctx.fillStyle = '#8B4513';
+    if (o.type === "tree") {
+      ctx.fillStyle = "#8B4513";
       const trunkWidth = o.width * 0.4;
-      ctx.fillRect(o.x - trunkWidth / 2, groundCenter - o.height, trunkWidth, o.height);
-      ctx.fillStyle = '#228B22';
+      ctx.fillRect(
+        o.x - trunkWidth / 2,
+        groundCenter - o.height,
+        trunkWidth,
+        o.height,
+      );
+      ctx.fillStyle = "#228B22";
       const r = o.width;
       ctx.beginPath();
       ctx.arc(o.x, groundCenter - o.height, r, 0, Math.PI * 2);
-      ctx.arc(o.x - r * 0.6, groundCenter - o.height + r * 0.3, r * 0.8, 0, Math.PI * 2);
-      ctx.arc(o.x + r * 0.6, groundCenter - o.height + r * 0.3, r * 0.8, 0, Math.PI * 2);
+      ctx.arc(
+        o.x - r * 0.6,
+        groundCenter - o.height + r * 0.3,
+        r * 0.8,
+        0,
+        Math.PI * 2,
+      );
+      ctx.arc(
+        o.x + r * 0.6,
+        groundCenter - o.height + r * 0.3,
+        r * 0.8,
+        0,
+        Math.PI * 2,
+      );
       ctx.fill();
-    } else if (o.type === 'water') {
-      ctx.fillStyle = '#00bfff';
+    } else if (o.type === "water") {
+      ctx.fillStyle = "#00bfff";
       ctx.beginPath();
       ctx.moveTo(o.x, groundHeightAt(o.x));
       for (let x = o.x; x <= o.x + o.width; x += 2) {
@@ -495,8 +557,8 @@ function drawObstacles() {
       }
       ctx.closePath();
       ctx.fill();
-    } else if (o.type === 'bunker') {
-      ctx.fillStyle = '#e0c068';
+    } else if (o.type === "bunker") {
+      ctx.fillStyle = "#e0c068";
       ctx.beginPath();
       ctx.moveTo(o.x, groundHeightAt(o.x));
       for (let x = o.x; x <= o.x + o.width; x += 2) {
@@ -518,7 +580,7 @@ function drawAim() {
   const endX = ball.x + Math.cos(angle) * len;
   const endY = ball.y - Math.sin(angle) * len;
 
-  ctx.strokeStyle = 'red';
+  ctx.strokeStyle = "red";
   ctx.lineWidth = 3;
   ctx.beginPath();
   ctx.moveTo(ball.x, ball.y);
@@ -528,16 +590,16 @@ function drawAim() {
   // draw arrow head to show direction
   const headLength = 10;
   const offset = Math.PI / 7;
-  ctx.fillStyle = 'red';
+  ctx.fillStyle = "red";
   ctx.beginPath();
   ctx.moveTo(endX, endY);
   ctx.lineTo(
     endX - headLength * Math.cos(angle - offset),
-    endY + headLength * Math.sin(angle - offset)
+    endY + headLength * Math.sin(angle - offset),
   );
   ctx.lineTo(
     endX - headLength * Math.cos(angle + offset),
-    endY + headLength * Math.sin(angle + offset)
+    endY + headLength * Math.sin(angle + offset),
   );
   ctx.closePath();
   ctx.fill();
@@ -557,10 +619,10 @@ function loop() {
   requestAnimationFrame(loop);
 }
 
-window.addEventListener('keydown', (e) => {
-  if (e.code === 'ArrowLeft' && !ball.moving) angle += 0.05;  // inverted controls
-  if (e.code === 'ArrowRight' && !ball.moving) angle -= 0.05; // inverted controls
-  if (e.code === 'KeyR') {
+window.addEventListener("keydown", (e) => {
+  if (e.code === "ArrowLeft" && !ball.moving) angle += 0.05; // inverted controls
+  if (e.code === "ArrowRight" && !ball.moving) angle -= 0.05; // inverted controls
+  if (e.code === "KeyR") {
     ball.x = prevX;
     ball.y = prevY;
     ball.vx = 0;
@@ -570,8 +632,8 @@ window.addEventListener('keydown', (e) => {
     ball.falling = false;
     power = 15;
     meterActive = false;
-    powerBar.style.display = 'none';
-    powerLevel.style.width = '0%';
+    powerBar.style.display = "none";
+    powerLevel.style.width = "0%";
     if (!hazardPenalty && hits > 1) {
       hits++;
       updateCounter();
@@ -581,20 +643,20 @@ window.addEventListener('keydown', (e) => {
     prevX = ball.x;
     prevY = ball.y;
   }
-  if (e.code === 'KeyN') {
+  if (e.code === "KeyN") {
     restartHole();
   }
-  if (e.code === 'Space' && !ball.moving) {
+  if (e.code === "Space" && !ball.moving) {
     if (!meterActive) {
       meterActive = true;
       meterPercent = 0;
       meterDirection = 1;
-      powerBar.style.display = 'block';
+      powerBar.style.display = "block";
     } else {
       meterActive = false;
-      powerBar.style.display = 'none';
-      power = meterPercent / 100 * MAX_POWER;
-      powerLevel.style.width = '0%';
+      powerBar.style.display = "none";
+      power = (meterPercent / 100) * MAX_POWER;
+      powerLevel.style.width = "0%";
       launch();
     }
   }
