@@ -2,114 +2,112 @@ const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 
 const ball = {
-    x: canvas.width / 2,
-    y: canvas.height - 30,
-    radius: 15,
-    vx: 0,
-    vy: 0
+  x: 50,
+  y: canvas.height - 20,
+  radius: 10,
+  vx: 0,
+  vy: 0,
+  moving: false
 };
 
-const pole = {
-    angle: 0,
-    time: 0
-};
+let angle = Math.PI / 4; // aiming angle in radians
+let power = 20;          // launch power
+const GRAVITY = 0.4;
+const FRICTION = 0.99;
 
-const keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false };
-const ACCEL = 0.2; // acceleration from input
-const FRICTION = 0.98; // friction to slow the ball
+let lastSpace = 0;
+const DOUBLE_TIME = 300; // ms for double click
 
-function rotateVector(x, y, angle) {
-    return {
-        x: x * Math.cos(angle) - y * Math.sin(angle),
-        y: x * Math.sin(angle) + y * Math.cos(angle)
-    };
+function launch() {
+  if (ball.moving) return;
+  ball.vx = Math.cos(angle) * power;
+  ball.vy = -Math.sin(angle) * power;
+  ball.moving = true;
 }
 
 function update() {
-    pole.time += 0.01;
-    pole.angle = Math.sin(pole.time) * 0.5; // wobbling floor
-
-    let ax = 0,
-        ay = 0;
-    if (keys.ArrowUp) ay -= 1;
-    if (keys.ArrowDown) ay += 1;
-    if (keys.ArrowLeft) ax -= 1;
-    if (keys.ArrowRight) ax += 1;
-
-    // rotate the acceleration by the pole angle
-    const rotated = rotateVector(ax, ay, pole.angle);
-    ball.vx += rotated.x * ACCEL;
-    ball.vy += rotated.y * ACCEL;
-
-    // apply friction
+  if (ball.moving) {
+    ball.vy += GRAVITY;
+    ball.x += ball.vx;
+    ball.y += ball.vy;
     ball.vx *= FRICTION;
     ball.vy *= FRICTION;
 
-    // update position
-    ball.x += ball.vx;
-    ball.y += ball.vy;
-
-    // keep ball within canvas bounds
-    ball.x = Math.max(ball.radius, Math.min(canvas.width - ball.radius, ball.x));
-    ball.y = Math.max(ball.radius, Math.min(canvas.height - ball.radius, ball.y));
+    if (ball.y + ball.radius > canvas.height - 10) {
+      ball.y = canvas.height - 10 - ball.radius;
+      ball.vy *= -0.5;
+      if (Math.abs(ball.vy) < 1) {
+        ball.vy = 0;
+        ball.vx *= 0.5;
+        if (Math.abs(ball.vx) < 0.5) {
+          ball.vx = 0;
+          ball.moving = false;
+        }
+      }
+    }
+  }
 }
 
-function drawFloor() {
-    ctx.save();
-    ctx.translate(canvas.width / 2, canvas.height / 2);
-    ctx.rotate(pole.angle);
-    ctx.fillStyle = '#ddd';
-    ctx.fillRect(-canvas.width / 2, -10, canvas.width, 20);
-    ctx.restore();
+function drawGround() {
+  ctx.fillStyle = '#654321';
+  ctx.fillRect(0, canvas.height - 10, canvas.width, 10);
+}
+
+function drawHole() {
+  const r = 8;
+  const hx = canvas.width - 50;
+  const hy = canvas.height - 10;
+  ctx.beginPath();
+  ctx.arc(hx, hy, r, Math.PI, Math.PI * 2);
+  ctx.fillStyle = 'black';
+  ctx.fill();
+
+  if (!ball.moving && Math.hypot(ball.x - hx, ball.y - hy + r) < r) {
+    ctx.fillStyle = 'green';
+    ctx.font = '24px Arial';
+    ctx.fillText('You win!', canvas.width / 2 - 50, canvas.height / 2);
+  }
 }
 
 function drawBall() {
-    ctx.beginPath();
-    ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
-    ctx.fillStyle = '#3498db';
-    ctx.fill();
+  ctx.beginPath();
+  ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+  ctx.fillStyle = '#3498db';
+  ctx.fill();
 }
 
-function drawGoal() {
-    const r = 10;
-    ctx.beginPath();
-    ctx.arc(canvas.width / 2, canvas.height / 2, r, 0, Math.PI * 2);
-    ctx.strokeStyle = 'green';
-    ctx.stroke();
-}
-
-function drawWin() {
-    ctx.fillStyle = 'green';
-    ctx.font = '24px Arial';
-    ctx.fillText('You win!', canvas.width / 2 - 50, canvas.height / 2 - 30);
+function drawAim() {
+  if (ball.moving) return;
+  const len = power * 2;
+  ctx.strokeStyle = 'red';
+  ctx.beginPath();
+  ctx.moveTo(ball.x, ball.y);
+  ctx.lineTo(ball.x + Math.cos(angle) * len, ball.y - Math.sin(angle) * len);
+  ctx.stroke();
 }
 
 function loop() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    update();
-    drawFloor();
-    drawGoal();
-    drawBall();
-
-    const dx = ball.x - canvas.width / 2;
-    const dy = ball.y - canvas.height / 2;
-    if (Math.hypot(dx, dy) < 10) {
-        drawWin();
-    } else {
-        requestAnimationFrame(loop);
-    }
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  update();
+  drawGround();
+  drawHole();
+  drawBall();
+  drawAim();
+  requestAnimationFrame(loop);
 }
 
 window.addEventListener('keydown', (e) => {
-    if (e.code in keys) {
-        keys[e.code] = true;
+  if (e.code === 'ArrowLeft' && !ball.moving) angle -= 0.05;
+  if (e.code === 'ArrowRight' && !ball.moving) angle += 0.05;
+  if (e.code === 'ArrowUp' && !ball.moving) power = Math.min(power + 1, 50);
+  if (e.code === 'ArrowDown' && !ball.moving) power = Math.max(power - 1, 5);
+  if (e.code === 'Space') {
+    const now = performance.now();
+    if (now - lastSpace < DOUBLE_TIME) {
+      launch();
     }
-});
-
-window.addEventListener('keyup', (e) => {
-    if (e.code in keys) {
-        keys[e.code] = false;
-    }
+    lastSpace = now;
+  }
 });
 
 loop();

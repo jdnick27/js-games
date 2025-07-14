@@ -1,7 +1,8 @@
-# JS Game
+# 2D Golf Game
 
-A simple browser game where you roll a ball to the center while the floor tilts.
+A simple browser golf game. Aim the ball and launch it toward the hole on a flat course.
 
 ## Playing
 
-Open `index.html` in a modern web browser and use the arrow keys to move the ball. The floor slowly shifts as if balanced on a pole, so the ball may not roll straight.
+Open `index.html` in a web browser. Use the arrow keys to adjust the angle and power of your shot.
+Double tap the Space key to fire the ball. Try to land it in the hole on the right side of the screen.
