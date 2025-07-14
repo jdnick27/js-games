@@ -57,13 +57,13 @@ let angle = Math.PI / 4; // aiming angle in radians
 const powerBar = document.getElementById('powerBar');
 const powerLevel = document.getElementById('powerLevel');
 
-let power = 25;                // selected launch power
+let power = 10;                // selected launch power
 const MAX_POWER = 50;          // maximum launch strength shown by meter
 const POWER_SCALE = 0.5;       // scale factor for actual launch strength
 let meterActive = false;
 let meterPercent = 0;
 let meterDirection = 1;
-const METER_SPEED = 3;         // percent per frame
+const METER_SPEED = 2;         // percent per frame
 const GRAVITY = 0.4;
 // Friction values for different surfaces
 const FRICTION_NORMAL = 0.99;
@@ -260,7 +260,7 @@ window.addEventListener('keydown', (e) => {
     ball.vx = 0;
     ball.vy = 0;
     ball.moving = false;
-    power = 25;
+    power = 15;
     meterActive = false;
     powerBar.style.display = 'none';
     powerLevel.style.width = '0%';
