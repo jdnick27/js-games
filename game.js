@@ -43,6 +43,30 @@ function randomRange(min, max) {
   return Math.random() * (max - min) + min;
 }
 
+function obstacleRange(ob) {
+  if (ob.type === 'tree') {
+    return { left: ob.x - ob.width / 2, right: ob.x + ob.width / 2 };
+  }
+  return { left: ob.x, right: ob.x + ob.width };
+}
+
+function obstaclesOverlap(a, b) {
+  const ra = obstacleRange(a);
+  const rb = obstacleRange(b);
+  return ra.left < rb.right && ra.right > rb.left;
+}
+
+function createObstacle(type, minX, maxX, props) {
+  let ob;
+  let attempts = 0;
+  do {
+    const x = randomRange(minX, maxX);
+    ob = { type, x, ...props };
+    attempts++;
+  } while (obstacles.some(o => obstaclesOverlap(o, ob)) && attempts < 100);
+  return ob;
+}
+
 function setupCourse() {
   // randomize hole and obstacle positions for each hole
   hole.x = randomRange(canvas.width * 0.7, canvas.width - 80);
@@ -50,12 +74,13 @@ function setupCourse() {
   // distance the ball can travel past the hole before penalty
   hole.maxOvershoot = randomRange(canvas.width * 0.2, canvas.width * 0.4);
   hole.maxDistance = hole.x + hole.maxOvershoot;
-  obstacles = [
-    { type: 'tree', x: randomRange(canvas.width * 0.2, canvas.width * 0.4), width: 20, height: 60 },
-    { type: 'water', x: randomRange(canvas.width * 0.4, canvas.width * 0.6), width: 60, depth: 15 },
-    { type: 'bunker', x: randomRange(canvas.width * 0.6, canvas.width * 0.8), width: 80, depth: 12 },
-    { type: 'hill', x: randomRange(canvas.width * 0.5, canvas.width * 0.7), width: 50, height: 30 }
-  ];
+
+  obstacles = [];
+  obstacles.push(createObstacle('tree', canvas.width * 0.2, canvas.width * 0.4, { width: 20, height: 60 }));
+  obstacles.push(createObstacle('water', canvas.width * 0.4, canvas.width * 0.6, { width: 60, depth: 15 }));
+  obstacles.push(createObstacle('bunker', canvas.width * 0.6, canvas.width * 0.8, { width: 80, depth: 12 }));
+  obstacles.push(createObstacle('hill', canvas.width * 0.5, canvas.width * 0.7, { width: 50, height: 30 }));
+
   ball.x = 50;
   ball.y = canvas.height - 20;
   viewOffset = 0;
