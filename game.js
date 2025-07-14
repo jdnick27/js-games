@@ -6,8 +6,25 @@ function resizeCanvas() {
   canvas.height = window.innerHeight;
 }
 
-window.addEventListener('resize', resizeCanvas);
+function setupCourse() {
+  hole.x = canvas.width - 80;
+  hole.y = canvas.height - 10;
+  obstacles = [
+    { type: 'tree', x: canvas.width * 0.3, width: 20, height: 60 },
+    { type: 'water', x: canvas.width * 0.45, width: 60, depth: 15 },
+    { type: 'bunker', x: canvas.width * 0.65, width: 80, depth: 12 },
+    { type: 'hill', x: canvas.width * 0.55, width: 50, height: 30 }
+  ];
+  ball.x = 50;
+  ball.y = canvas.height - 20;
+}
+
+window.addEventListener('resize', () => {
+  resizeCanvas();
+  setupCourse();
+});
 resizeCanvas();
+setupCourse();
 
 let hits = 0;
 const counterEl = document.getElementById('counter');
@@ -31,7 +48,34 @@ let angle = Math.PI / 4; // aiming angle in radians
 let power = 20;          // displayed launch power
 const POWER_SCALE = 0.5; // scale factor for actual launch strength
 const GRAVITY = 0.4;
-const FRICTION = 0.99;
+// Friction values for different surfaces
+const FRICTION_NORMAL = 0.99;
+const FRICTION_GREEN = 0.995;
+const FRICTION_BUNKER = 0.92;
+
+const hole = {
+  x: 0,
+  y: 0,
+  radius: 8,
+  greenRadius: 40
+};
+
+let obstacles = [];
+
+function ballInBunker() {
+  return obstacles.some(o =>
+    o.type === 'bunker' &&
+    ball.x > o.x &&
+    ball.x < o.x + o.width &&
+    ball.y + ball.radius > canvas.height - 10 - o.depth);
+}
+
+function getFriction() {
+  if (ballInBunker()) return FRICTION_BUNKER;
+  const dist = Math.hypot(ball.x - hole.x, ball.y - hole.y);
+  if (dist < hole.greenRadius) return FRICTION_GREEN;
+  return FRICTION_NORMAL;
+}
 
 let lastSpace = 0;
 const DOUBLE_TIME = 300; // ms for double click
@@ -51,8 +95,9 @@ function update() {
     ball.vy += GRAVITY;
     ball.x += ball.vx;
     ball.y += ball.vy;
-    ball.vx *= FRICTION;
-    ball.vy *= FRICTION;
+    const friction = getFriction();
+    ball.vx *= friction;
+    ball.vy *= friction;
 
     if (ball.y + ball.radius > canvas.height - 10) {
       ball.y = canvas.height - 10 - ball.radius;
@@ -66,6 +111,44 @@ function update() {
         }
       }
     }
+
+    // obstacle collisions and effects
+    const ground = canvas.height - 10;
+    obstacles.forEach(o => {
+      if (o.type === 'tree') {
+        const left = o.x - o.width / 2;
+        const right = o.x + o.width / 2;
+        const top = ground - o.height;
+        if (ball.y + ball.radius > top && ball.y - ball.radius < ground &&
+            ball.x + ball.radius > left && ball.x - ball.radius < right) {
+          if (ball.x < o.x) {
+            ball.x = left - ball.radius;
+          } else {
+            ball.x = right + ball.radius;
+          }
+          ball.vx *= -0.5;
+        }
+      } else if (o.type === 'water') {
+        if (ball.x > o.x && ball.x < o.x + o.width &&
+            ball.y + ball.radius > ground - o.depth) {
+          // reset ball on water hazard
+          ball.x = 50;
+          ball.y = canvas.height - 20;
+          ball.vx = 0;
+          ball.vy = 0;
+          ball.moving = false;
+        }
+      } else if (o.type === 'hill') {
+        if (ball.x > o.x && ball.x < o.x + o.width) {
+          const t = (ball.x - o.x) / o.width;
+          const heightAtX = ground - o.height * (1 - Math.abs(2 * t - 1));
+          if (ball.y + ball.radius > heightAtX) {
+            ball.y = heightAtX - ball.radius;
+            if (ball.vy > 0) ball.vy *= -0.5;
+          }
+        }
+      }
+    });
   }
 }
 
@@ -75,15 +158,19 @@ function drawGround() {
 }
 
 function drawHole() {
-  const r = 8;
-  const hx = canvas.width - 50;
-  const hy = canvas.height - 10;
+  // green area
+  ctx.fillStyle = '#3cb371';
   ctx.beginPath();
-  ctx.arc(hx, hy, r, Math.PI, Math.PI * 2);
+  ctx.arc(hole.x, hole.y, hole.greenRadius, 0, Math.PI * 2);
+  ctx.fill();
+
+  // actual hole
+  ctx.beginPath();
+  ctx.arc(hole.x, hole.y, hole.radius, 0, Math.PI * 2);
   ctx.fillStyle = 'black';
   ctx.fill();
 
-  if (!ball.moving && Math.hypot(ball.x - hx, ball.y - hy + r) < r) {
+  if (!ball.moving && Math.hypot(ball.x - hole.x, ball.y - hole.y) < hole.radius) {
     ctx.fillStyle = 'green';
     ctx.font = '24px Arial';
     ctx.fillText('You win!', canvas.width / 2 - 50, canvas.height / 2);
@@ -95,6 +182,33 @@ function drawBall() {
   ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
   ctx.fillStyle = '#3498db';
   ctx.fill();
+}
+
+function drawObstacles() {
+  const ground = canvas.height - 10;
+  obstacles.forEach(o => {
+    if (o.type === 'tree') {
+      ctx.fillStyle = '#8B4513';
+      ctx.fillRect(o.x - o.width / 2, ground - o.height, o.width, o.height);
+      ctx.fillStyle = '#228B22';
+      ctx.beginPath();
+      ctx.arc(o.x, ground - o.height, o.width, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (o.type === 'water') {
+      ctx.fillStyle = '#00bfff';
+      ctx.fillRect(o.x, ground - o.depth, o.width, o.depth);
+    } else if (o.type === 'bunker') {
+      ctx.fillStyle = '#e0c068';
+      ctx.fillRect(o.x, ground - o.depth, o.width, o.depth);
+    } else if (o.type === 'hill') {
+      ctx.fillStyle = '#8FBC8F';
+      ctx.beginPath();
+      ctx.moveTo(o.x, ground);
+      ctx.lineTo(o.x + o.width / 2, ground - o.height);
+      ctx.lineTo(o.x + o.width, ground);
+      ctx.fill();
+    }
+  });
 }
 
 function drawAim() {
@@ -111,6 +225,7 @@ function loop() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   update();
   drawGround();
+  drawObstacles();
   drawHole();
   drawBall();
   drawAim();
