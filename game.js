@@ -317,10 +317,15 @@ function drawHole() {
   ctx.restore();
 
   // actual hole
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(0, hole.y, canvas.width, canvas.height - hole.y);
+  ctx.clip();
   ctx.beginPath();
   ctx.arc(hole.x, hole.y, hole.radius, 0, Math.PI * 2);
   ctx.fillStyle = 'black';
   ctx.fill();
+  ctx.restore();
 
   if (!ball.moving && Math.hypot(ball.x - hole.x, ball.y - hole.y) < hole.radius) {
     ctx.fillStyle = 'green';
