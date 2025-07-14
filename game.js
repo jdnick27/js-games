@@ -154,6 +154,32 @@ const FRICTION_GREEN = 0.995;
 const FRICTION_BUNKER = 0.92;
 let bunkerPenaltyApplied = false;
 
+// how strongly gravity pulls the ball along slopes
+const SLOPE_ACCEL = 0.2;
+
+function groundHeightAt(x) {
+  let y = canvas.height - 10;
+  obstacles.forEach(o => {
+    if (o.type === 'hill' && x >= o.x && x <= o.x + o.width) {
+      const t = (x - o.x) / o.width;
+      const height = o.height * (1 - Math.abs(2 * t - 1));
+      y -= height;
+    }
+  });
+  return y;
+}
+
+function groundSlopeAt(x) {
+  let slope = 0;
+  obstacles.forEach(o => {
+    if (o.type === 'hill' && x >= o.x && x <= o.x + o.width) {
+      const half = o.width / 2;
+      slope = (x - o.x < half ? -1 : 1) * o.height / half;
+    }
+  });
+  return slope;
+}
+
 function ballInBunker() {
   return obstacles.some(o =>
     o.type === 'bunker' &&
@@ -206,27 +232,33 @@ function update() {
     ball.vy += GRAVITY;
     ball.x += ball.vx;
     ball.y += ball.vy;
+
+    const groundY = groundHeightAt(ball.x);
+    let onGround = false;
+    if (ball.y + ball.radius > groundY) {
+      ball.y = groundY - ball.radius;
+      onGround = true;
+      if (ball.vy > 0) ball.vy *= -0.5;
+    }
+
     const friction = getFriction();
     ball.vx *= friction;
     ball.vy *= friction;
 
-    if (ball.y + ball.radius > canvas.height - 10) {
-      ball.y = canvas.height - 10 - ball.radius;
-      ball.vy *= -0.5;
-      if (Math.abs(ball.vy) < 1) {
+    if (onGround) {
+      const slope = groundSlopeAt(ball.x);
+      ball.vx += slope * SLOPE_ACCEL;
+      if (Math.abs(ball.vy) < 0.5 && Math.abs(ball.vx) < 0.5) {
+        ball.vx = 0;
         ball.vy = 0;
-        ball.vx *= 0.5;
-        if (Math.abs(ball.vx) < 0.5) {
-          ball.vx = 0;
-          ball.moving = false;
-        }
+        ball.moving = false;
       }
     }
 
     // obstacle collisions and effects
-    const ground = canvas.height - 10;
     obstacles.forEach(o => {
       if (o.type === 'tree') {
+        const ground = groundHeightAt(o.x);
         const left = o.x - o.width / 2;
         const right = o.x + o.width / 2;
         const top = ground - o.height;
@@ -240,6 +272,7 @@ function update() {
           ball.vx *= -0.5;
         }
       } else if (o.type === 'water') {
+        const ground = groundHeightAt(o.x + o.width / 2);
         if (ball.x > o.x && ball.x < o.x + o.width &&
             ball.y + ball.radius > ground - o.depth) {
           // water penalty: add stroke and drop ball behind water
@@ -251,15 +284,6 @@ function update() {
           ball.vx = 0;
           ball.vy = 0;
           ball.moving = false;
-        }
-      } else if (o.type === 'hill') {
-        if (ball.x > o.x && ball.x < o.x + o.width) {
-          const t = (ball.x - o.x) / o.width;
-          const heightAtX = ground - o.height * (1 - Math.abs(2 * t - 1));
-          if (ball.y + ball.radius > heightAtX) {
-            ball.y = heightAtX - ball.radius;
-            if (ball.vy > 0) ball.vy *= -0.5;
-          }
         }
       }
     });
@@ -300,7 +324,14 @@ function update() {
 function drawGround() {
   ctx.fillStyle = '#654321';
   const width = Math.max(canvas.width, hole.maxDistance + 100);
-  ctx.fillRect(0, canvas.height - 10, width, 10);
+  ctx.beginPath();
+  ctx.moveTo(0, canvas.height);
+  for (let x = 0; x <= width; x += 4) {
+    ctx.lineTo(x, groundHeightAt(x));
+  }
+  ctx.lineTo(width, canvas.height);
+  ctx.closePath();
+  ctx.fill();
 }
 
 function drawHole() {
@@ -338,8 +369,8 @@ function drawBall() {
 }
 
 function drawObstacles() {
-  const ground = canvas.height - 10;
   obstacles.forEach(o => {
+    const ground = groundHeightAt(o.x + (o.width || 0) / 2);
     if (o.type === 'tree') {
       ctx.fillStyle = '#8B4513';
       ctx.fillRect(o.x - o.width / 2, ground - o.height, o.width, o.height);
@@ -353,13 +384,6 @@ function drawObstacles() {
     } else if (o.type === 'bunker') {
       ctx.fillStyle = '#e0c068';
       ctx.fillRect(o.x, ground - o.depth, o.width, o.depth);
-    } else if (o.type === 'hill') {
-      ctx.fillStyle = '#8FBC8F';
-      ctx.beginPath();
-      ctx.moveTo(o.x, ground);
-      ctx.lineTo(o.x + o.width / 2, ground - o.height);
-      ctx.lineTo(o.x + o.width, ground);
-      ctx.fill();
     }
   });
 }
