@@ -14,6 +14,8 @@ const hole = {
 let obstacles = [];
 
 const BALL_RADIUS = 10;
+const TREE_BASE_WIDTH = 20;
+const TREE_BASE_HEIGHT = 60;
 const GROUND_THICKNESS = 20; // thickness of the ground from the bottom of the canvas
 
 const ball = {
@@ -97,7 +99,17 @@ function setupCourse() {
   }];
 
   obstacles = [];
-  obstacles.push(createObstacle('tree', canvas.width * 0.2, canvas.width * 0.4, { width: 20, height: 60 }, avoidGreen));
+  const treeCount = Math.floor(randomRange(1, 4));
+  for (let i = 0; i < treeCount; i++) {
+    const scale = randomRange(1.5, 3);
+    obstacles.push(createObstacle(
+      'tree',
+      canvas.width * 0.2,
+      canvas.width * 0.4,
+      { width: TREE_BASE_WIDTH * scale, height: TREE_BASE_HEIGHT * scale },
+      avoidGreen
+    ));
+  }
   // Water hazards should appear level with the ground so no depth is needed
   obstacles.push(createObstacle('water', canvas.width * 0.4, canvas.width * 0.6, { width: 60 }, avoidGreen));
   obstacles.push(createObstacle('bunker', canvas.width * 0.6, canvas.width * 0.8, { width: 80, depth: 12 }, avoidGreen));
