@@ -89,7 +89,13 @@ function setupCourse() {
   hole.maxOvershoot = randomRange(canvas.width * 0.2, canvas.width * 0.4);
   hole.maxDistance = hole.x + hole.maxOvershoot;
   hole.distance = Math.round(hole.x - 50);
-  hole.par = Math.floor(randomRange(3, 6));
+  if (hole.distance >= 75 && hole.distance <= 225) {
+    hole.par = 3;
+  } else if (hole.distance >= 226 && hole.distance <= 420) {
+    hole.par = 4;
+  } else {
+    hole.par = 5;
+  }
 
   const avoidGreen = [{
     left: hole.x - hole.greenRadius,
