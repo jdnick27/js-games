@@ -112,6 +112,13 @@ window.addEventListener('keydown', (e) => {
   if (e.code === 'ArrowRight' && !ball.moving) angle += 0.05;
   if (e.code === 'ArrowUp' && !ball.moving) power = Math.min(power + 1, 50);
   if (e.code === 'ArrowDown' && !ball.moving) power = Math.max(power - 1, 5);
+  if (e.code === 'KeyR') {
+    ball.x = 50;
+    ball.y = canvas.height - 20;
+    ball.vx = 0;
+    ball.vy = 0;
+    ball.moving = false;
+  }
   if (e.code === 'Space') {
     const now = performance.now();
     if (now - lastSpace < DOUBLE_TIME) {
