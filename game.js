@@ -281,13 +281,34 @@ function drawObstacles() {
 
 function drawAim() {
   if (ball.moving) return;
-  const displayPower = meterActive ? (meterPercent / 100 * MAX_POWER) : power;
-  const len = displayPower * 4; // larger visual meter
+  // constant length so aim does not scale with power meter
+  const len = 80;
+  const endX = ball.x + Math.cos(angle) * len;
+  const endY = ball.y - Math.sin(angle) * len;
+
   ctx.strokeStyle = 'red';
+  ctx.lineWidth = 3;
   ctx.beginPath();
   ctx.moveTo(ball.x, ball.y);
-  ctx.lineTo(ball.x + Math.cos(angle) * len, ball.y - Math.sin(angle) * len);
+  ctx.lineTo(endX, endY);
   ctx.stroke();
+
+  // draw arrow head to show direction
+  const headLength = 10;
+  const offset = Math.PI / 7;
+  ctx.fillStyle = 'red';
+  ctx.beginPath();
+  ctx.moveTo(endX, endY);
+  ctx.lineTo(
+    endX - headLength * Math.cos(angle - offset),
+    endY + headLength * Math.sin(angle - offset)
+  );
+  ctx.lineTo(
+    endX - headLength * Math.cos(angle + offset),
+    endY + headLength * Math.sin(angle + offset)
+  );
+  ctx.closePath();
+  ctx.fill();
 }
 
 function loop() {
