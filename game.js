@@ -45,8 +45,16 @@ const ball = {
 };
 
 let angle = Math.PI / 4; // aiming angle in radians
-let power = 20;          // displayed launch power
-const POWER_SCALE = 0.5; // scale factor for actual launch strength
+const powerBar = document.getElementById('powerBar');
+const powerLevel = document.getElementById('powerLevel');
+
+let power = 25;                // selected launch power
+const MAX_POWER = 50;          // maximum launch strength shown by meter
+const POWER_SCALE = 0.5;       // scale factor for actual launch strength
+let meterActive = false;
+let meterPercent = 0;
+let meterDirection = 1;
+const METER_SPEED = 3;         // percent per frame
 const GRAVITY = 0.4;
 // Friction values for different surfaces
 const FRICTION_NORMAL = 0.99;
@@ -77,8 +85,6 @@ function getFriction() {
   return FRICTION_NORMAL;
 }
 
-let lastSpace = 0;
-const DOUBLE_TIME = 300; // ms for double click
 
 function launch() {
   if (ball.moving) return;
@@ -91,6 +97,18 @@ function launch() {
 }
 
 function update() {
+  if (meterActive) {
+    meterPercent += METER_SPEED * meterDirection;
+    if (meterPercent >= 100) {
+      meterPercent = 100;
+      meterDirection = -1;
+    } else if (meterPercent <= 0) {
+      meterPercent = 0;
+      meterDirection = 1;
+    }
+    powerLevel.style.width = meterPercent + '%';
+  }
+
   if (ball.moving) {
     ball.vy += GRAVITY;
     ball.x += ball.vx;
@@ -213,7 +231,8 @@ function drawObstacles() {
 
 function drawAim() {
   if (ball.moving) return;
-  const len = power * 4; // larger visual meter
+  const displayPower = meterActive ? (meterPercent / 100 * MAX_POWER) : power;
+  const len = displayPower * 4; // larger visual meter
   ctx.strokeStyle = 'red';
   ctx.beginPath();
   ctx.moveTo(ball.x, ball.y);
@@ -235,21 +254,30 @@ function loop() {
 window.addEventListener('keydown', (e) => {
   if (e.code === 'ArrowLeft' && !ball.moving) angle -= 0.05;
   if (e.code === 'ArrowRight' && !ball.moving) angle += 0.05;
-  if (e.code === 'ArrowUp' && !ball.moving) power = Math.min(power + 1, 50);
-  if (e.code === 'ArrowDown' && !ball.moving) power = Math.max(power - 1, 5);
   if (e.code === 'KeyR') {
     ball.x = 50;
     ball.y = canvas.height - 20;
     ball.vx = 0;
     ball.vy = 0;
     ball.moving = false;
+    power = 25;
+    meterActive = false;
+    powerBar.style.display = 'none';
+    powerLevel.style.width = '0%';
   }
-  if (e.code === 'Space') {
-    const now = performance.now();
-    if (now - lastSpace < DOUBLE_TIME) {
+  if (e.code === 'Space' && !ball.moving) {
+    if (!meterActive) {
+      meterActive = true;
+      meterPercent = 0;
+      meterDirection = 1;
+      powerBar.style.display = 'block';
+    } else {
+      meterActive = false;
+      powerBar.style.display = 'none';
+      power = meterPercent / 100 * MAX_POWER;
+      powerLevel.style.width = '0%';
       launch();
     }
-    lastSpace = now;
   }
 });
 
