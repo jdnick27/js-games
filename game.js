@@ -522,32 +522,40 @@ function drawObstacles() {
   obstacles.forEach((o) => {
     const groundCenter = groundHeightAt(o.x + (o.width || 0) / 2);
     if (o.type === "tree") {
-      ctx.fillStyle = "#8B4513";
+      // add slight gradient to the trunk
       const trunkWidth = o.width * 0.4;
+      const trunkGrad = ctx.createLinearGradient(
+        0,
+        groundCenter - o.height,
+        0,
+        groundCenter,
+      );
+      trunkGrad.addColorStop(0, "#A0522D");
+      trunkGrad.addColorStop(1, "#8B4513");
+      ctx.fillStyle = trunkGrad;
       ctx.fillRect(
         o.x - trunkWidth / 2,
         groundCenter - o.height,
         trunkWidth,
         o.height,
       );
-      ctx.fillStyle = "#228B22";
+
+      // draw layered canopy for more detail
       const r = o.width;
+      ctx.fillStyle = "#228B22";
       ctx.beginPath();
       ctx.arc(o.x, groundCenter - o.height, r, 0, Math.PI * 2);
-      ctx.arc(
-        o.x - r * 0.6,
-        groundCenter - o.height + r * 0.3,
-        r * 0.8,
-        0,
-        Math.PI * 2,
-      );
-      ctx.arc(
-        o.x + r * 0.6,
-        groundCenter - o.height + r * 0.3,
-        r * 0.8,
-        0,
-        Math.PI * 2,
-      );
+      ctx.fill();
+
+      ctx.fillStyle = "#2e8b57";
+      ctx.beginPath();
+      ctx.arc(o.x - r * 0.6, groundCenter - o.height + r * 0.3, r * 0.8, 0, Math.PI * 2);
+      ctx.arc(o.x + r * 0.6, groundCenter - o.height + r * 0.3, r * 0.8, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "#3cb371";
+      ctx.beginPath();
+      ctx.arc(o.x, groundCenter - o.height + r * 0.4, r * 0.6, 0, Math.PI * 2);
       ctx.fill();
     } else if (o.type === "water") {
       ctx.fillStyle = "#00bfff";
