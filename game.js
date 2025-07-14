@@ -141,6 +141,7 @@ const GRAVITY = 0.4;
 const FRICTION_NORMAL = 0.99;
 const FRICTION_GREEN = 0.995;
 const FRICTION_BUNKER = 0.92;
+let bunkerPenaltyApplied = false;
 
 function ballInBunker() {
   return obstacles.some(o =>
@@ -179,6 +180,15 @@ function update() {
       meterDirection = 1;
     }
     powerLevel.style.width = meterPercent + '%';
+  }
+
+  if (!ball.moving && ballInBunker()) {
+    if (!bunkerPenaltyApplied) {
+      power = Math.max(5, power * 0.7);
+      bunkerPenaltyApplied = true;
+    }
+  } else if (!ballInBunker()) {
+    bunkerPenaltyApplied = false;
   }
 
   if (ball.moving) {
