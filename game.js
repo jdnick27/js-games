@@ -56,14 +56,20 @@ function obstaclesOverlap(a, b) {
   return ra.left < rb.right && ra.right > rb.left;
 }
 
-function createObstacle(type, minX, maxX, props) {
+function rangesOverlap(a, b) {
+  return a.left < b.right && a.right > b.left;
+}
+
+function createObstacle(type, minX, maxX, props, avoid = []) {
   let ob;
   let attempts = 0;
   do {
     const x = randomRange(minX, maxX);
     ob = { type, x, ...props };
     attempts++;
-  } while (obstacles.some(o => obstaclesOverlap(o, ob)) && attempts < 100);
+  } while ((obstacles.some(o => obstaclesOverlap(o, ob)) ||
+            avoid.some(r => rangesOverlap(obstacleRange(ob), r))) &&
+           attempts < 100);
   return ob;
 }
 
@@ -75,11 +81,16 @@ function setupCourse() {
   hole.maxOvershoot = randomRange(canvas.width * 0.2, canvas.width * 0.4);
   hole.maxDistance = hole.x + hole.maxOvershoot;
 
+  const avoidGreen = [{
+    left: hole.x - hole.greenRadius,
+    right: hole.x + hole.greenRadius
+  }];
+
   obstacles = [];
-  obstacles.push(createObstacle('tree', canvas.width * 0.2, canvas.width * 0.4, { width: 20, height: 60 }));
-  obstacles.push(createObstacle('water', canvas.width * 0.4, canvas.width * 0.6, { width: 60, depth: 15 }));
-  obstacles.push(createObstacle('bunker', canvas.width * 0.6, canvas.width * 0.8, { width: 80, depth: 12 }));
-  obstacles.push(createObstacle('hill', canvas.width * 0.5, canvas.width * 0.7, { width: 50, height: 30 }));
+  obstacles.push(createObstacle('tree', canvas.width * 0.2, canvas.width * 0.4, { width: 20, height: 60 }, avoidGreen));
+  obstacles.push(createObstacle('water', canvas.width * 0.4, canvas.width * 0.6, { width: 60, depth: 15 }, avoidGreen));
+  obstacles.push(createObstacle('bunker', canvas.width * 0.6, canvas.width * 0.8, { width: 80, depth: 12 }, avoidGreen));
+  obstacles.push(createObstacle('hill', canvas.width * 0.5, canvas.width * 0.7, { width: 50, height: 30 }, avoidGreen));
 
   ball.x = 50;
   ball.y = canvas.height - 20;
