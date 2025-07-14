@@ -43,6 +43,9 @@ let scores = [];
 let pars = [];
 let holeCompleted = false;
 let viewOffset = 0;    // camera offset to keep ball in view
+let prevX = 50;
+let prevY = 0;
+let hazardPenalty = false;
 
 function resizeCanvas() {
   canvas.width = window.innerWidth;
@@ -125,6 +128,8 @@ function setupCourse() {
   ball.x = 50;
   ball.y = canvas.height - GROUND_THICKNESS - BALL_RADIUS;
   viewOffset = 0;
+  prevX = ball.x;
+  prevY = ball.y;
 }
 
 window.addEventListener('resize', () => {
@@ -173,6 +178,7 @@ function nextHole() {
   setupCourse();
   ball.radius = BALL_RADIUS;
   ball.falling = false;
+  hazardPenalty = false;
 }
 
 let angle = Math.PI / 4; // aiming angle in radians
@@ -236,6 +242,9 @@ function getFriction() {
 function launch() {
   if (ball.moving) return;
   const scaled = power * POWER_SCALE;
+  prevX = ball.x;
+  prevY = ball.y;
+  hazardPenalty = false;
   ball.vx = Math.cos(angle) * scaled;
   ball.vy = -Math.sin(angle) * scaled;
   ball.moving = true;
@@ -331,6 +340,7 @@ function update() {
           // water penalty: add stroke and drop ball behind water
           hits++;
           updateCounter();
+          hazardPenalty = true;
           ball.x = o.x - ball.radius - 5;
           if (ball.x < ball.radius) ball.x = ball.radius;
           ball.y = ground - ball.radius;
@@ -345,6 +355,7 @@ function update() {
     if (ball.x > hole.maxDistance) {
       hits++;
       updateCounter();
+      hazardPenalty = true;
       // Place ball next to the out of bounds marker but still in bounds
       ball.x = hole.maxDistance - 30;
       ball.y = canvas.height - GROUND_THICKNESS - BALL_RADIUS;
@@ -508,8 +519,8 @@ window.addEventListener('keydown', (e) => {
   if (e.code === 'ArrowLeft' && !ball.moving) angle += 0.05;  // inverted controls
   if (e.code === 'ArrowRight' && !ball.moving) angle -= 0.05; // inverted controls
   if (e.code === 'KeyR') {
-    ball.x = 50;
-    ball.y = canvas.height - GROUND_THICKNESS - BALL_RADIUS;
+    ball.x = prevX;
+    ball.y = prevY;
     ball.vx = 0;
     ball.vy = 0;
     ball.moving = false;
@@ -519,6 +530,14 @@ window.addEventListener('keydown', (e) => {
     meterActive = false;
     powerBar.style.display = 'none';
     powerLevel.style.width = '0%';
+    if (!hazardPenalty) {
+      hits++;
+      updateCounter();
+    } else {
+      hazardPenalty = false;
+    }
+    prevX = ball.x;
+    prevY = ball.y;
   }
   if (e.code === 'Space' && !ball.moving) {
     if (!meterActive) {
