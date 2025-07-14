@@ -155,11 +155,12 @@ const FRICTION_BUNKER = 0.92;
 let bunkerPenaltyApplied = false;
 
 function ballInBunker() {
+  const ground = canvas.height - 10;
   return obstacles.some(o =>
     o.type === 'bunker' &&
     ball.x > o.x &&
     ball.x < o.x + o.width &&
-    ball.y + ball.radius > canvas.height - 10 - o.depth);
+    ball.y + ball.radius >= ground);
 }
 
 function getFriction() {
@@ -352,7 +353,7 @@ function drawObstacles() {
       ctx.fillRect(o.x, ground - o.depth, o.width, o.depth);
     } else if (o.type === 'bunker') {
       ctx.fillStyle = '#e0c068';
-      ctx.fillRect(o.x, ground - o.depth, o.width, o.depth);
+      ctx.fillRect(o.x, ground - 10, o.width, 10);
     } else if (o.type === 'hill') {
       ctx.fillStyle = '#8FBC8F';
       ctx.beginPath();
