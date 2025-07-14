@@ -486,8 +486,8 @@ function loop() {
 }
 
 window.addEventListener('keydown', (e) => {
-  if (e.code === 'ArrowLeft' && !ball.moving) angle -= 0.05;
-  if (e.code === 'ArrowRight' && !ball.moving) angle += 0.05;
+  if (e.code === 'ArrowLeft' && !ball.moving) angle += 0.05;  // inverted controls
+  if (e.code === 'ArrowRight' && !ball.moving) angle -= 0.05; // inverted controls
   if (e.code === 'KeyR') {
     ball.x = 50;
     ball.y = canvas.height - GROUND_THICKNESS - BALL_RADIUS;
