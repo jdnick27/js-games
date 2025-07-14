@@ -75,16 +75,15 @@ function rangesOverlap(a, b) {
 }
 
 function createObstacle(type, minX, maxX, props, avoid = []) {
-  let ob;
-  let attempts = 0;
-  do {
+  for (let i = 0; i < 100; i++) {
     const x = randomRange(minX, maxX);
-    ob = { type, x, ...props };
-    attempts++;
-  } while ((obstacles.some(o => obstaclesOverlap(o, ob)) ||
-            avoid.some(r => rangesOverlap(obstacleRange(ob), r))) &&
-           attempts < 100);
-  return ob;
+    const ob = { type, x, ...props };
+    if (!obstacles.some(o => obstaclesOverlap(o, ob)) &&
+        !avoid.some(r => rangesOverlap(obstacleRange(ob), r))) {
+      return ob;
+    }
+  }
+  return null; // failed to find valid placement
 }
 
 function setupCourse() {
@@ -112,76 +111,70 @@ function setupCourse() {
   const treeCount = Math.floor(randomRange(1, 4));
   for (let i = 0; i < treeCount; i++) {
     const scale = randomRange(1.5, 3);
-    obstacles.push(
-      createObstacle(
-        'tree',
-        canvas.width * 0.2,
-        canvas.width * 0.4,
-        { width: TREE_BASE_WIDTH * scale, height: TREE_BASE_HEIGHT * scale },
-        avoidGreen
-      )
+    const ob = createObstacle(
+      'tree',
+      canvas.width * 0.2,
+      canvas.width * 0.4,
+      { width: TREE_BASE_WIDTH * scale, height: TREE_BASE_HEIGHT * scale },
+      avoidGreen
     );
+    if (ob) obstacles.push(ob);
   }
 
   const bushCount = Math.floor(randomRange(1, 4));
   for (let i = 0; i < bushCount; i++) {
-    obstacles.push(
-      createObstacle(
-        'bush',
-        canvas.width * 0.25,
-        canvas.width * 0.6,
-        { radius: randomRange(BUSH_RADIUS * 0.8, BUSH_RADIUS * 1.2) },
-        avoidGreen
-      )
+    const ob = createObstacle(
+      'bush',
+      canvas.width * 0.25,
+      canvas.width * 0.6,
+      { radius: randomRange(BUSH_RADIUS * 0.8, BUSH_RADIUS * 1.2) },
+      avoidGreen
     );
+    if (ob) obstacles.push(ob);
   }
 
   const rockCount = Math.floor(randomRange(0, 3));
   for (let i = 0; i < rockCount; i++) {
-    obstacles.push(
-      createObstacle(
-        'rock',
-        canvas.width * 0.3,
-        canvas.width * 0.7,
-        { radius: randomRange(ROCK_RADIUS * 0.8, ROCK_RADIUS * 1.2) },
-        avoidGreen
-      )
+    const ob = createObstacle(
+      'rock',
+      canvas.width * 0.3,
+      canvas.width * 0.7,
+      { radius: randomRange(ROCK_RADIUS * 0.8, ROCK_RADIUS * 1.2) },
+      avoidGreen
     );
+    if (ob) obstacles.push(ob);
   }
 
   // Place the hill before water and sand so they avoid its space
-  obstacles.push(
-    createObstacle(
-      'hill',
-      canvas.width * 0.4,
-      canvas.width * 0.75,
-      { width: randomRange(80, 120), height: randomRange(30, 50) },
-      avoidGreen
-    )
+  const hill = createObstacle(
+    'hill',
+    canvas.width * 0.4,
+    canvas.width * 0.75,
+    { width: randomRange(80, 120), height: randomRange(30, 50) },
+    avoidGreen
   );
+  if (hill) obstacles.push(hill);
 
   if (Math.random() < 0.7) {
-    obstacles.push(
-      createObstacle(
-        'water',
-        canvas.width * 0.35,
-        canvas.width * 0.7,
-        { width: randomRange(50, 80) },
-        avoidGreen
-      )
+    const ob = createObstacle(
+      'water',
+      canvas.width * 0.35,
+      canvas.width * 0.7,
+      { width: randomRange(50, 80) },
+      avoidGreen
     );
+    if (ob) obstacles.push(ob);
   }
 
   if (Math.random() < 0.7) {
-    obstacles.push(
-      createObstacle(
-        'bunker',
-        canvas.width * 0.55,
-        canvas.width * 0.85,
-        { width: randomRange(60, 100), depth: 12 },
-        avoidGreen
-      )
+    const ob = createObstacle(
+      'bunker',
+      canvas.width * 0.55,
+      canvas.width * 0.85,
+      { width: randomRange(60, 100), depth: 12 },
+      avoidGreen
     );
+    if (ob) obstacles.push(ob);
   }
 
   ball.x = 50;
