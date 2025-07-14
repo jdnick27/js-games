@@ -1,0 +1,16 @@
+{
+  "name": "js-game",
+  "version": "1.0.0",
+  "description": "A simple browser golf game. Aim the ball and launch it toward the hole on a flat course filled with hazards.",
+  "main": "game.js",
+  "scripts": {
+    "test": "eslint ."
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "eslint": "^8.57.1"
+  }
+}
