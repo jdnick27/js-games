@@ -258,11 +258,17 @@ function drawGround() {
 }
 
 function drawHole() {
-  // green area
-  ctx.fillStyle = '#3cb371';
+  // green area - draw flattened ellipse and clip so nothing shows above ground
+  const vertRadius = hole.greenRadius * 0.5;
+  ctx.save();
   ctx.beginPath();
-  ctx.arc(hole.x, hole.y, hole.greenRadius, 0, Math.PI * 2);
+  ctx.rect(0, hole.y, canvas.width, canvas.height - hole.y);
+  ctx.clip();
+  ctx.beginPath();
+  ctx.ellipse(hole.x, hole.y, hole.greenRadius, vertRadius, 0, 0, Math.PI * 2);
+  ctx.fillStyle = '#3cb371';
   ctx.fill();
+  ctx.restore();
 
   // actual hole
   ctx.beginPath();
