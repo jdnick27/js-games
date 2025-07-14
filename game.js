@@ -185,9 +185,11 @@ function restartHole() {
   hits = 0;
   holeCompleted = false;
   updateCounter();
-  setupCourse();
+  // keep the current hole layout and just reset the ball
   updateHoleInfo();
   ball.radius = BALL_RADIUS;
+  ball.x = 50;
+  ball.y = canvas.height - GROUND_THICKNESS - BALL_RADIUS;
   ball.vx = 0;
   ball.vy = 0;
   ball.moving = false;
