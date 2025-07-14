@@ -9,7 +9,10 @@ An on-screen arrow shows your current aim direction. Press the Space key once to
 Avoid trees, water, bunkers and hills along the way. The green around the hole is slicker, so the ball rolls farther. If your shot lands in the water hazard a penalty stroke is added and the ball is dropped on the side of the water farther from the hole.
 Press **R** to reset the ball if you want to restart the current hole.
 
-The game now features 18 holes played in sequence. Your strokes for each hole
-are recorded on the scoreboard shown on the right side of the screen. Once the
+The game now features 18 holes played in sequence. Each hole has a randomly
+assigned **par** value along with a distance from the tee. The overlay at the
+top of the screen shows the current hole number, its par and distance. Your
+strokes for each hole are recorded on the scoreboard shown on the right side of
+the screen along with how many strokes over or under par you were. Once the
 ball comes to rest in the hole the next hole will automatically load until all
 18 are completed.

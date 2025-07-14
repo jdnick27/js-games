@@ -5,7 +5,9 @@ const hole = {
   x: 0,
   y: 0,
   radius: 8,
-  greenRadius: 40
+  greenRadius: 40,
+  par: 4,
+  distance: 0
 };
 
 let obstacles = [];
@@ -31,6 +33,7 @@ const TOTAL_HOLES = 18;
 let currentHole = 1;
 let hits = 0;
 let scores = [];
+let pars = [];
 let holeCompleted = false;
 let viewOffset = 0;    // camera offset to keep ball in view
 
@@ -80,6 +83,8 @@ function setupCourse() {
   // distance the ball can travel past the hole before penalty
   hole.maxOvershoot = randomRange(canvas.width * 0.2, canvas.width * 0.4);
   hole.maxDistance = hole.x + hole.maxOvershoot;
+  hole.distance = Math.round(hole.x - 50);
+  hole.par = Math.floor(randomRange(3, 6));
 
   const avoidGreen = [{
     left: hole.x - hole.greenRadius,
@@ -115,13 +120,18 @@ function updateCounter() {
 
 function updateHoleInfo() {
   if (holeInfoEl) {
-    holeInfoEl.textContent = `Hole ${currentHole}/${TOTAL_HOLES}`;
+    holeInfoEl.textContent = `Hole ${currentHole}/${TOTAL_HOLES} - Par ${hole.par} - ${hole.distance}yd`;
   }
 }
 
 function updateScoreboard() {
   if (scoresEl) {
-    scoresEl.innerHTML = scores.map((s, i) => `<li>Hole ${i + 1}: ${s}</li>`).join('');
+    scoresEl.innerHTML = scores.map((s, i) => {
+      const par = pars[i];
+      const diff = s - par;
+      const diffStr = diff === 0 ? 'E' : (diff > 0 ? `+${diff}` : diff);
+      return `<li>Hole ${i + 1}: ${s} (${diffStr})</li>`;
+    }).join('');
   }
 }
 
@@ -134,8 +144,8 @@ function nextHole() {
   hits = 0;
   holeCompleted = false;
   updateCounter();
-  updateHoleInfo();
   setupCourse();
+  updateHoleInfo();
 }
 
 let angle = Math.PI / 4; // aiming angle in radians
@@ -281,6 +291,7 @@ function update() {
   if (!ball.moving && !holeCompleted && Math.hypot(ball.x - hole.x, ball.y - hole.y) < hole.radius) {
     holeCompleted = true;
     scores.push(hits);
+    pars.push(hole.par);
     updateScoreboard();
     setTimeout(nextHole, 1000);
   }
