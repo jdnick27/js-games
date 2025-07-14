@@ -19,6 +19,20 @@ const ball = {
   moving: false
 };
 
+// DOM elements
+const counterEl = document.getElementById('counter');
+const holeInfoEl = document.getElementById('holeInfo');
+const scoresEl = document.getElementById('scores');
+const powerBar = document.getElementById('powerBar');
+const powerLevel = document.getElementById('powerLevel');
+
+// Game state
+const TOTAL_HOLES = 18;
+let currentHole = 1;
+let hits = 0;
+let scores = [];
+let holeCompleted = false;
+
 function resizeCanvas() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
@@ -52,15 +66,6 @@ setupCourse();
 updateHoleInfo();
 updateScoreboard();
 
-const TOTAL_HOLES = 18;
-let currentHole = 1;
-let hits = 0;
-let scores = [];
-let holeCompleted = false;
-const counterEl = document.getElementById('counter');
-const holeInfoEl = document.getElementById('holeInfo');
-const scoresEl = document.getElementById('scores');
-
 function updateCounter() {
   if (counterEl) {
     counterEl.textContent = `Hits: ${hits}`;
@@ -93,8 +98,6 @@ function nextHole() {
 }
 
 let angle = Math.PI / 4; // aiming angle in radians
-const powerBar = document.getElementById('powerBar');
-const powerLevel = document.getElementById('powerLevel');
 
 let power = 10;                // selected launch power
 const MAX_POWER = 50;          // maximum launch strength shown by meter
