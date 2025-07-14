@@ -3,13 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Balancing Ball Game</title>
+    <title>2D Golf Game</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>Balancing Ball</h1>
-    <p>Use the arrow keys to roll the ball to the center.</p>
-    <canvas id="game" width="600" height="400"></canvas>
+    <div id="overlay">
+        <h1>2D Golf</h1>
+        <p>Use ←/→ to adjust angle. Press Space to start the power meter and
+            press again to launch.</p>
+        <p id="counter">Hits: 0</p>
+    </div>
+    <div id="powerBar"><div id="powerLevel"></div></div>
+    <canvas id="game"></canvas>
     <script src="game.js"></script>
 </body>
 </html>
