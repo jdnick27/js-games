@@ -92,7 +92,8 @@ function setupCourse() {
 
   obstacles = [];
   obstacles.push(createObstacle('tree', canvas.width * 0.2, canvas.width * 0.4, { width: 20, height: 60 }, avoidGreen));
-  obstacles.push(createObstacle('water', canvas.width * 0.4, canvas.width * 0.6, { width: 60, depth: 15 }, avoidGreen));
+  // Water hazards should appear level with the ground so no depth is needed
+  obstacles.push(createObstacle('water', canvas.width * 0.4, canvas.width * 0.6, { width: 60 }, avoidGreen));
   obstacles.push(createObstacle('bunker', canvas.width * 0.6, canvas.width * 0.8, { width: 80, depth: 12 }, avoidGreen));
   obstacles.push(createObstacle('hill', canvas.width * 0.5, canvas.width * 0.7, { width: 50, height: 30 }, avoidGreen));
 
@@ -296,7 +297,7 @@ function update() {
       } else if (o.type === 'water') {
         const ground = groundHeightAt(o.x + o.width / 2);
         if (ball.x > o.x && ball.x < o.x + o.width &&
-            ball.y + ball.radius > ground - o.depth) {
+            ball.y + ball.radius >= ground) {
           // water penalty: add stroke and drop ball behind water
           hits++;
           updateCounter();
@@ -409,7 +410,7 @@ function drawObstacles() {
       ctx.fill();
     } else if (o.type === 'water') {
       ctx.fillStyle = '#00bfff';
-      ctx.fillRect(o.x, ground - o.depth, o.width, o.depth);
+      ctx.fillRect(o.x, ground - 2, o.width, 2);
     } else if (o.type === 'bunker') {
       ctx.fillStyle = '#e0c068';
       ctx.fillRect(o.x, ground - o.depth, o.width, o.depth);
