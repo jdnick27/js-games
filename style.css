@@ -67,3 +67,35 @@ html, body {
 #holeInfo {
     font-weight: bold;
 }
+
+/* menu styles for home and about pages */
+#menu {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    height: 100vh;
+    padding: 0 20px;
+}
+
+#menu ul {
+    list-style: none;
+    padding: 0;
+}
+
+#menu li {
+    margin: 10px 0;
+}
+
+#menu a {
+    text-decoration: none;
+    color: #333;
+    border: 1px solid #333;
+    padding: 10px 20px;
+    border-radius: 5px;
+}
+
+#menu a:hover {
+    background: #f0f0f0;
+}
