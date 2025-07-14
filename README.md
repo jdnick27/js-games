@@ -10,6 +10,6 @@ Avoid trees, water, bunkers and hills along the way. The green around the hole i
 Press **R** to reset the ball if you want to restart the current hole.
 
 The game now features 18 holes played in sequence. Your strokes for each hole
-are recorded on the scoreboard shown on the right side of the screen. Once the
-ball comes to rest in the hole the next hole will automatically load until all
-18 are completed.
+are recorded on the scoreboard shown on the right side of the screen. When the
+ball drops into the cup the hole is complete and the next hole will
+automatically load until all 18 are finished.
