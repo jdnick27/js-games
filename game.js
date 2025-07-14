@@ -219,7 +219,8 @@ function update() {
     if (ball.x > hole.maxDistance) {
       hits++;
       updateCounter();
-      ball.x = hole.x - 20;
+      // Place ball next to the out of bounds marker but still in bounds
+      ball.x = hole.maxDistance - 30;
       ball.y = canvas.height - 20;
       ball.vx = 0;
       ball.vy = 0;
