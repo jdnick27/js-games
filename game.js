@@ -181,6 +181,29 @@ function nextHole() {
   hazardPenalty = false;
 }
 
+function restartHole() {
+  hits = 0;
+  holeCompleted = false;
+  updateCounter();
+  // keep the current hole layout and just reset the ball
+  updateHoleInfo();
+  ball.radius = BALL_RADIUS;
+  ball.x = 50;
+  ball.y = canvas.height - GROUND_THICKNESS - BALL_RADIUS;
+  ball.vx = 0;
+  ball.vy = 0;
+  ball.moving = false;
+  ball.falling = false;
+  power = 15;
+  meterActive = false;
+  powerBar.style.display = 'none';
+  powerLevel.style.width = '0%';
+  hazardPenalty = false;
+  viewOffset = 0;
+  prevX = ball.x;
+  prevY = ball.y;
+}
+
 let angle = Math.PI / 4; // aiming angle in radians
 
 let power = 10;                // selected launch power
@@ -557,6 +580,9 @@ window.addEventListener('keydown', (e) => {
     }
     prevX = ball.x;
     prevY = ball.y;
+  }
+  if (e.code === 'KeyN') {
+    restartHole();
   }
   if (e.code === 'Space' && !ball.moving) {
     if (!meterActive) {
