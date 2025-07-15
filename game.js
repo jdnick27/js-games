@@ -128,14 +128,13 @@ function setupCourse() {
 
   obstacles = [];
 
-  // first place a hill anywhere on the course
-  const hill = createObstacle(
-    "hill",
-    0,
-    courseEnd * 0.8,
-    { width: randomRange(80, 140), height: randomRange(30, 50) },
-    [],
-  );
+  // create a broad rolling hill across most of the course
+  const hill = {
+    type: "hill",
+    x: 0,
+    width: courseEnd,
+    height: randomRange(40, 80),
+  };
   if (hill.x < TEE_BOX_WIDTH) {
     const diff = TEE_BOX_WIDTH - hill.x;
     hill.x = TEE_BOX_WIDTH;
@@ -144,11 +143,12 @@ function setupCourse() {
   obstacles.push(hill);
 
   // place water avoiding tee box, green and the hill
+  const waterWidth = randomRange(80, 120);
   const water = createObstacle(
     "water",
     TEE_BOX_WIDTH,
     courseEnd * 0.7,
-    { width: 80 },
+    { width: waterWidth },
     [teeRange, ...avoidGreen, { left: hill.x, right: hill.x + hill.width }],
   );
   obstacles.push(water);
@@ -172,7 +172,12 @@ function setupCourse() {
         TEE_BOX_WIDTH,
         courseEnd * 0.9,
         { width: TREE_BASE_WIDTH * scale, height: TREE_BASE_HEIGHT * scale },
-        [teeRange, ...avoidGreen],
+        [
+          teeRange,
+          ...avoidGreen,
+          { left: water.x, right: water.x + water.width },
+          { left: bunker.x, right: bunker.x + bunker.width },
+        ],
       ),
     );
   }
