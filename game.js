@@ -512,10 +512,35 @@ function drawHole() {
 
 function drawBall() {
   if (holeCompleted) return;
+  const { x, y, radius: r } = ball;
+  const grad = ctx.createRadialGradient(
+    x - r * 0.3,
+    y - r * 0.3,
+    r * 0.2,
+    x,
+    y,
+    r,
+  );
+  grad.addColorStop(0, "#ffffff");
+  grad.addColorStop(1, "#cccccc");
+  ctx.fillStyle = grad;
   ctx.beginPath();
-  ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
-  ctx.fillStyle = "#3498db";
+  ctx.arc(x, y, r, 0, Math.PI * 2);
   ctx.fill();
+
+  ctx.fillStyle = "rgba(0, 0, 0, 0.15)";
+  const d = r * 0.15;
+  [
+    [-0.3, -0.3],
+    [0.3, -0.3],
+    [-0.3, 0.3],
+    [0.3, 0.3],
+    [0, 0],
+  ].forEach(([dx, dy]) => {
+    ctx.beginPath();
+    ctx.arc(x + dx * r, y + dy * r, d, 0, Math.PI * 2);
+    ctx.fill();
+  });
 }
 
 function drawObstacles() {
@@ -549,8 +574,20 @@ function drawObstacles() {
 
       ctx.fillStyle = "#2e8b57";
       ctx.beginPath();
-      ctx.arc(o.x - r * 0.6, groundCenter - o.height + r * 0.3, r * 0.8, 0, Math.PI * 2);
-      ctx.arc(o.x + r * 0.6, groundCenter - o.height + r * 0.3, r * 0.8, 0, Math.PI * 2);
+      ctx.arc(
+        o.x - r * 0.6,
+        groundCenter - o.height + r * 0.3,
+        r * 0.8,
+        0,
+        Math.PI * 2,
+      );
+      ctx.arc(
+        o.x + r * 0.6,
+        groundCenter - o.height + r * 0.3,
+        r * 0.8,
+        0,
+        Math.PI * 2,
+      );
       ctx.fill();
 
       ctx.fillStyle = "#3cb371";
