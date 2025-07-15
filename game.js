@@ -674,11 +674,7 @@ window.addEventListener("keydown", (e) => {
   }
 });
 
-if (typeof module === "undefined") {
-  updateCounter();
-  updateHoleInfo();
-  loop();
-} else {
+if (typeof module !== "undefined" && module.exports) {
   /* global module */
   module.exports = {
     randomRange,
