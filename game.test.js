@@ -77,6 +77,23 @@ test("groundSlopeAt calculates slope near hole", () => {
     ((-game.HOLE_ELEVATION * Math.PI) / (2 * 100)) * Math.sin(Math.PI * 0.5);
   expect(game.groundSlopeAt(50)).toBeCloseTo(expected);
 });
+
+test("course slope affects ground height and slope", () => {
+  const canvas = document.getElementById("game");
+  canvas.width = 100;
+  canvas.height = 200;
+  game.hole.x = 80;
+  game.hole.greenRadius = 10;
+  game.setTerrain(20, 0);
+  expect(game.groundHeightAt(0)).toBe(
+    200 - game.GROUND_THICKNESS - game.terrainLeft,
+  );
+  expect(game.groundHeightAt(100)).toBe(
+    200 - game.GROUND_THICKNESS - game.terrainRight,
+  );
+  const expectedSlope = -(game.terrainRight - game.terrainLeft) / canvas.width;
+  expect(game.groundSlopeAt(0)).toBeCloseTo(expectedSlope);
+});
 test("ballInBunker detects when ball is in bunker", () => {
   const canvas = document.getElementById("game");
   canvas.height = 200;

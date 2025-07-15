@@ -13,6 +13,14 @@ const hole = {
 
 let obstacles = [];
 
+let terrainLeft = 0; // elevation offset at the tee side
+let terrainRight = 0; // elevation offset at the hole side
+
+function setTerrain(left, right) {
+  terrainLeft = left;
+  terrainRight = right;
+}
+
 const BALL_RADIUS = 10;
 const TREE_BASE_WIDTH = 20;
 const TREE_BASE_HEIGHT = 60;
@@ -111,8 +119,10 @@ function createObstacle(type, minX, maxX, props, avoid = []) {
 
 function setupCourse() {
   // randomize hole and obstacle positions for each hole
+  terrainLeft = randomRange(-20, 20);
+  terrainRight = randomRange(-20, 20);
   hole.x = randomRange(canvas.width * 0.7, canvas.width - 80);
-  hole.y = canvas.height - GROUND_THICKNESS + holeElevationAt(hole.x);
+  hole.y = groundHeightAt(hole.x);
   // distance the ball can travel past the hole before penalty
   hole.maxOvershoot = randomRange(canvas.width * 0.2, canvas.width * 0.4);
   hole.maxDistance = hole.x + hole.maxOvershoot;
@@ -168,7 +178,7 @@ function setupCourse() {
   );
 
   ball.x = 50;
-  ball.y = canvas.height - GROUND_THICKNESS - BALL_RADIUS;
+  ball.y = groundHeightAt(50) - BALL_RADIUS;
   golferX = ball.x - 20;
   viewOffset = 0;
   prevX = ball.x;
@@ -236,7 +246,7 @@ function restartHole() {
   updateHoleInfo();
   ball.radius = BALL_RADIUS;
   ball.x = 50;
-  ball.y = canvas.height - GROUND_THICKNESS - BALL_RADIUS;
+  ball.y = groundHeightAt(50) - BALL_RADIUS;
   golferX = ball.x - 20;
   ball.vx = 0;
   ball.vy = 0;
@@ -279,19 +289,28 @@ function holeElevationAt(x) {
   return (HOLE_ELEVATION * (1 + Math.cos(Math.PI * t))) / 2;
 }
 
+function baseHeightAt(x) {
+  const t = x / canvas.width;
+  const offset = terrainLeft + (terrainRight - terrainLeft) * t;
+  return canvas.height - GROUND_THICKNESS - offset;
+}
+
 function groundHeightAt(x) {
-  let y = canvas.height - GROUND_THICKNESS;
-  y += holeElevationAt(x);
-  return y;
+  return baseHeightAt(x) + holeElevationAt(x);
 }
 
 function groundSlopeAt(x) {
+  const baseSlope = -(terrainRight - terrainLeft) / canvas.width;
+  let slope = baseSlope;
   const dx = x - hole.x;
   const r = hole.greenRadius;
-  if (Math.abs(dx) > r) return 0;
-  const sign = Math.sign(dx);
-  const t = Math.abs(dx) / r;
-  return ((-HOLE_ELEVATION * Math.PI) / (2 * r)) * Math.sin(Math.PI * t) * sign;
+  if (Math.abs(dx) <= r) {
+    const sign = Math.sign(dx);
+    const t = Math.abs(dx) / r;
+    slope +=
+      ((-HOLE_ELEVATION * Math.PI) / (2 * r)) * Math.sin(Math.PI * t) * sign;
+  }
+  return slope;
 }
 
 function ballInBunker() {
@@ -446,7 +465,7 @@ function update() {
       showMessage(OOB_PENALTY_MSG);
       // Place ball next to the out of bounds marker but still in bounds
       ball.x = hole.maxDistance - 30;
-      ball.y = canvas.height - GROUND_THICKNESS - BALL_RADIUS;
+      ball.y = groundHeightAt(ball.x) - BALL_RADIUS;
       ball.vx = 0;
       ball.vy = 0;
       ball.moving = false;
@@ -920,6 +939,13 @@ if (typeof module !== "undefined" && module.exports) {
     obstacles,
     ball,
     hole,
+    get terrainLeft() {
+      return terrainLeft;
+    },
+    get terrainRight() {
+      return terrainRight;
+    },
+    setTerrain,
     HOLE_ELEVATION,
   };
 }
