@@ -19,6 +19,8 @@ const TREE_BASE_HEIGHT = 60;
 const GROUND_THICKNESS = 20; // thickness of the ground from the bottom of the canvas
 // Rough conversion factor from pixels to yards for distance labels
 const PIXELS_TO_YARDS = 0.3;
+// width of the flat tee box area at the start of each hole
+const TEE_BOX_WIDTH = 100;
 
 const ball = {
   x: 50,
@@ -81,6 +83,7 @@ function rangesOverlap(a, b) {
 
 function createObstacle(type, minX, maxX, props, avoid = []) {
   let ob;
+  let valid = false;
   let attempts = 0;
   do {
     const x = randomRange(minX, maxX);
@@ -90,11 +93,9 @@ function createObstacle(type, minX, maxX, props, avoid = []) {
     const overlapsAvoid = avoid.some((r) =>
       rangesOverlap(obstacleRange(ob), r),
     );
-    if (!overlapsExisting && !overlapsAvoid) {
-      break;
-    }
-  } while (attempts < 100);
-  return ob;
+    valid = !overlapsExisting && !overlapsAvoid;
+  } while (!valid && attempts < 100);
+  return valid ? ob : null;
 }
 
 function setupCourse() {
@@ -121,49 +122,69 @@ function setupCourse() {
     },
   ];
 
+  const teeRange = { left: 0, right: TEE_BOX_WIDTH };
+  const courseEnd = hole.x + hole.maxOvershoot;
+
   obstacles = [];
+
+  // create a broad rolling hill across most of the course
+  const hillWidth = randomRange(courseEnd * 0.3, courseEnd * 0.6);
+  let hillX = randomRange(0, courseEnd - hillWidth);
+  const hill = {
+    type: "hill",
+    x: hillX,
+    width: hillWidth,
+    height: randomRange(40, 80),
+  };
+  if (hill.x < TEE_BOX_WIDTH) {
+    const diff = TEE_BOX_WIDTH - hill.x;
+    hill.x = TEE_BOX_WIDTH;
+    hill.width += diff;
+  }
+  obstacles.push(hill);
+
+
+  // place water avoiding tee box, green and other water/bunkers
+  const waterWidth = randomRange(80, 120);
+  const water = createObstacle(
+    "water",
+    TEE_BOX_WIDTH,
+    courseEnd * 0.7,
+    { width: waterWidth },
+    [teeRange, ...avoidGreen],
+  );
+  if (water) obstacles.push(water);
+
+  // place bunker avoiding tee box, green and water
+  const bunker = createObstacle(
+    "bunker",
+    TEE_BOX_WIDTH,
+    courseEnd * 0.8,
+    { width: 80, depth: 12 },
+    [teeRange, ...avoidGreen, { left: water?.x, right: water ? water.x + water.width : 0 }],
+  );
+  if (bunker) obstacles.push(bunker);
+
   const treeCount = Math.floor(randomRange(1, 4));
   for (let i = 0; i < treeCount; i++) {
     const scale = randomRange(1.5, 3);
-    obstacles.push(
-      createObstacle(
-        "tree",
-        canvas.width * 0.2,
-        canvas.width * 0.4,
-        { width: TREE_BASE_WIDTH * scale, height: TREE_BASE_HEIGHT * scale },
-        avoidGreen,
-      ),
+    const tree = createObstacle(
+      "tree",
+      TEE_BOX_WIDTH,
+      courseEnd * 0.9,
+      { width: TREE_BASE_WIDTH * scale, height: TREE_BASE_HEIGHT * scale },
+      [
+        teeRange,
+        ...avoidGreen,
+        { left: water?.x, right: water ? water.x + water.width : 0 },
+        { left: bunker?.x, right: bunker ? bunker.x + bunker.width : 0 },
+      ],
     );
+    if (tree) obstacles.push(tree);
   }
-  // Place the hill before water and sand so they avoid its space
-  obstacles.push(
-    createObstacle(
-      "hill",
-      canvas.width * 0.5,
-      canvas.width * 0.7,
-      { width: 100, height: 40 },
-      avoidGreen,
-    ),
-  );
-  // Water hazards sit on top of the ground and extend halfway down
-  obstacles.push(
-    createObstacle(
-      "water",
-      canvas.width * 0.4,
-      canvas.width * 0.6,
-      { width: 60 },
-      avoidGreen,
-    ),
-  );
-  obstacles.push(
-    createObstacle(
-      "bunker",
-      canvas.width * 0.6,
-      canvas.width * 0.8,
-      { width: 80, depth: 12 },
-      avoidGreen,
-    ),
-  );
+
+  // ensure the cup sits at ground level
+  hole.y = groundHeightAt(hole.x);
 
   ball.x = 50;
   ball.y = canvas.height - GROUND_THICKNESS - BALL_RADIUS;
@@ -275,26 +296,22 @@ let bunkerPenaltyApplied = false;
 const SLOPE_ACCEL = 0.2;
 
 function groundHeightAt(x) {
-  let y = canvas.height - GROUND_THICKNESS;
+  let base = canvas.height - GROUND_THICKNESS;
   obstacles.forEach((o) => {
     if (o.type === "hill" && x >= o.x && x <= o.x + o.width) {
       const t = (x - o.x) / o.width;
       const height = o.height * Math.sin(Math.PI * t);
-      y -= height;
+      base -= height;
     }
   });
-  return y;
+
+  return base;
 }
 
 function groundSlopeAt(x) {
-  let slope = 0;
-  obstacles.forEach((o) => {
-    if (o.type === "hill" && x >= o.x && x <= o.x + o.width) {
-      const t = (x - o.x) / o.width;
-      slope = ((-o.height * Math.PI) / o.width) * Math.cos(Math.PI * t);
-    }
-  });
-  return slope;
+  const h1 = groundHeightAt(x + 1);
+  const h0 = groundHeightAt(x - 1);
+  return (h1 - h0) / 2;
 }
 
 function ballInBunker() {
@@ -488,22 +505,26 @@ function drawGround() {
 }
 
 function drawHole() {
-  // green area - draw flattened ellipse and clip so nothing shows above ground
-  const vertRadius = hole.greenRadius * 0.5;
+  // fill the green following the ground contour
+  const start = hole.x - hole.greenRadius;
+  const end = hole.x + hole.greenRadius;
   ctx.save();
   ctx.beginPath();
-  ctx.rect(0, hole.y, canvas.width, canvas.height - hole.y);
-  ctx.clip();
-  ctx.beginPath();
-  ctx.ellipse(hole.x, hole.y, hole.greenRadius, vertRadius, 0, 0, Math.PI * 2);
+  ctx.moveTo(start, canvas.height);
+  for (let x = start; x <= end; x += 2) {
+    ctx.lineTo(x, groundHeightAt(x));
+  }
+  ctx.lineTo(end, canvas.height);
+  ctx.closePath();
   ctx.fillStyle = "#3cb371";
   ctx.fill();
   ctx.restore();
 
   // actual hole
+  const groundY = hole.y;
   ctx.save();
   ctx.beginPath();
-  ctx.rect(0, hole.y, canvas.width, canvas.height - hole.y);
+  ctx.rect(0, groundY, canvas.width, canvas.height - groundY);
   ctx.clip();
   ctx.beginPath();
   ctx.arc(hole.x, hole.y, hole.radius + 3, 0, Math.PI * 2);
@@ -632,7 +653,7 @@ function drawObstacles() {
         ctx.lineTo(x, groundHeightAt(x));
       }
       for (let x = o.x + o.width; x >= o.x; x -= 2) {
-        ctx.lineTo(x, groundHeightAt(x) - o.depth);
+        ctx.lineTo(x, groundHeightAt(x) + o.depth);
       }
       ctx.closePath();
       ctx.fill();
@@ -734,7 +755,6 @@ if (typeof window !== "undefined" && (typeof module === "undefined" || !module.e
 }
 
 if (typeof module !== "undefined" && module.exports) {
-  /* global module */
   module.exports = {
     randomRange,
     obstacleRange,
