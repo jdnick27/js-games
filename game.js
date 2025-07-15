@@ -142,13 +142,6 @@ function setupCourse() {
   }
   obstacles.push(hill);
 
-  // carve a shallow bowl into the hill for the green
-  obstacles.push({
-    type: "hill",
-    x: hole.x - hole.greenRadius,
-    width: hole.greenRadius * 2,
-    height: -(hill.height * 0.3),
-  });
 
   // place water avoiding tee box, green and the hill
   const waterWidth = randomRange(80, 120);
@@ -189,6 +182,9 @@ function setupCourse() {
       ),
     );
   }
+
+  // ensure the cup sits at ground level
+  hole.y = groundHeightAt(hole.x);
 
   ball.x = 50;
   ball.y = canvas.height - GROUND_THICKNESS - BALL_RADIUS;
@@ -529,7 +525,7 @@ function drawHole() {
   ctx.restore();
 
   // actual hole
-  const groundY = groundHeightAt(hole.x);
+  const groundY = hole.y;
   ctx.save();
   ctx.beginPath();
   ctx.rect(0, groundY, canvas.width, canvas.height - groundY);
