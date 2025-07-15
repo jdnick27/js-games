@@ -83,6 +83,7 @@ function rangesOverlap(a, b) {
 
 function createObstacle(type, minX, maxX, props, avoid = []) {
   let ob;
+  let valid = false;
   let attempts = 0;
   do {
     const x = randomRange(minX, maxX);
@@ -92,11 +93,9 @@ function createObstacle(type, minX, maxX, props, avoid = []) {
     const overlapsAvoid = avoid.some((r) =>
       rangesOverlap(obstacleRange(ob), r),
     );
-    if (!overlapsExisting && !overlapsAvoid) {
-      break;
-    }
-  } while (attempts < 100);
-  return ob;
+    valid = !overlapsExisting && !overlapsAvoid;
+  } while (!valid && attempts < 100);
+  return valid ? ob : null;
 }
 
 function setupCourse() {
@@ -152,7 +151,7 @@ function setupCourse() {
     { width: waterWidth },
     [teeRange, ...avoidGreen, { left: hill.x, right: hill.x + hill.width }],
   );
-  obstacles.push(water);
+  if (water) obstacles.push(water);
 
   // place bunker avoiding tee box, green and water
   const bunker = createObstacle(
@@ -160,27 +159,26 @@ function setupCourse() {
     TEE_BOX_WIDTH,
     courseEnd * 0.8,
     { width: 80, depth: 12 },
-    [teeRange, ...avoidGreen, { left: water.x, right: water.x + water.width }],
+    [teeRange, ...avoidGreen, { left: water?.x, right: water ? water.x + water.width : 0 }],
   );
-  obstacles.push(bunker);
+  if (bunker) obstacles.push(bunker);
 
   const treeCount = Math.floor(randomRange(1, 4));
   for (let i = 0; i < treeCount; i++) {
     const scale = randomRange(1.5, 3);
-    obstacles.push(
-      createObstacle(
-        "tree",
-        TEE_BOX_WIDTH,
-        courseEnd * 0.9,
-        { width: TREE_BASE_WIDTH * scale, height: TREE_BASE_HEIGHT * scale },
-        [
-          teeRange,
-          ...avoidGreen,
-          { left: water.x, right: water.x + water.width },
-          { left: bunker.x, right: bunker.x + bunker.width },
-        ],
-      ),
+    const tree = createObstacle(
+      "tree",
+      TEE_BOX_WIDTH,
+      courseEnd * 0.9,
+      { width: TREE_BASE_WIDTH * scale, height: TREE_BASE_HEIGHT * scale },
+      [
+        teeRange,
+        ...avoidGreen,
+        { left: water?.x, right: water ? water.x + water.width : 0 },
+        { left: bunker?.x, right: bunker ? bunker.x + bunker.width : 0 },
+      ],
     );
+    if (tree) obstacles.push(tree);
   }
 
   // ensure the cup sits at ground level
