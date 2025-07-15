@@ -58,6 +58,8 @@ let golferX = ball.x - 20;
 const DANCE_DURATION = 300; // frames for victory dance (5s)
 let danceFrames = 0;
 let angle = Math.PI / 4; // aiming angle in radians
+const FRAME_INTERVAL = 2; // draw/update every other frame for slower look
+let frameCounter = 0;
 
 function aimAtHole() {
   angle = Math.atan2(ball.y - hole.y, hole.x - ball.x);
@@ -275,14 +277,12 @@ function restartHole() {
 
 let power = 10; // selected launch power
 const MAX_POWER = 50; // maximum launch strength shown by meter
-// Scale factor for actual launch strength. Lower values slow the ball's flight
-const POWER_SCALE = 0.3;
+const POWER_SCALE = 0.5; // scale factor for actual launch strength
 let meterActive = false;
 let meterPercent = 0;
 let meterDirection = 1;
 const METER_SPEED = 1.4; // percent per frame (30% slower)
-// Gravity also affects overall ball speed so reduce it to keep motion smooth
-const GRAVITY = 0.25;
+const GRAVITY = 0.4;
 // Friction values for different surfaces
 const FRICTION_NORMAL = 0.99;
 const FRICTION_GREEN = 0.995;
@@ -830,6 +830,9 @@ function drawAim() {
 }
 
 function loop() {
+  requestAnimationFrame(loop);
+  frameCounter++;
+  if (frameCounter % FRAME_INTERVAL !== 0) return;
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   update();
   ctx.save();
@@ -841,7 +844,6 @@ function loop() {
   drawBall();
   drawAim();
   ctx.restore();
-  requestAnimationFrame(loop);
 }
 
 window.addEventListener("keydown", (e) => {
