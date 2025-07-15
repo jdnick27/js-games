@@ -120,8 +120,8 @@ function createObstacle(type, minX, maxX, props, avoid = []) {
 
 function setupCourse() {
   // randomize hole and obstacle positions for each hole
-  terrainLeft = randomRange(-20, 20);
-  terrainRight = randomRange(-20, 20);
+  terrainLeft = randomRange(-40, 40);
+  terrainRight = randomRange(-40, 40);
   hole.x = randomRange(canvas.width * 0.7, canvas.width - 80);
   const baseSlope = -(terrainRight - terrainLeft) / canvas.width;
   hole.contour = baseSlope * 2 + randomRange(-0.2, 0.2);
@@ -285,6 +285,7 @@ let bunkerPenaltyApplied = false;
 const SLOPE_ACCEL = 0.2;
 
 const HOLE_ELEVATION = 12; // max downward dip of the green around the hole
+const MIN_GROUND_MARGIN = 5; // keep terrain within the viewport
 
 function holeElevationAt(x) {
   const center = hole.x + hole.contour * hole.greenRadius;
@@ -301,7 +302,8 @@ function baseHeightAt(x) {
 }
 
 function groundHeightAt(x) {
-  return baseHeightAt(x) + holeElevationAt(x);
+  const h = baseHeightAt(x) + holeElevationAt(x);
+  return Math.min(h, canvas.height - MIN_GROUND_MARGIN);
 }
 
 function groundSlopeAt(x) {
@@ -959,5 +961,6 @@ if (typeof module !== "undefined" && module.exports) {
     },
     setTerrain,
     HOLE_ELEVATION,
+    MIN_GROUND_MARGIN,
   };
 }
