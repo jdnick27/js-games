@@ -95,26 +95,44 @@ function createTreeProps(scale) {
   const width = TREE_BASE_WIDTH * scale;
   const height = TREE_BASE_HEIGHT * scale;
   const trunkRatio = randomRange(0.3, 0.5);
-  const leafShapes = [];
-  const hue = randomRange(100, 140);
-  const layerCount = Math.floor(randomRange(4, 7));
-  for (let i = 0; i < layerCount; i++) {
-    leafShapes.push({
-      dx: randomRange(-0.6, 0.6),
-      dy: randomRange(-0.4, 0.6),
-      scale: randomRange(0.4, 1),
-      color: `hsl(${hue + randomRange(-10, 10)}, ${65 + randomRange(-10, 10)}%, ${40 + randomRange(-10, 10)}%)`,
+
+  // create multiple branches per side for a fuller look
+  const branchLevels = Math.floor(randomRange(2, 4));
+  const branches = { left: [], right: [] };
+  for (let i = 0; i < branchLevels; i++) {
+    branches.left.push({
+      len: randomRange(0.8, 1.3),
+      height: randomRange(0.6 - i * 0.05, 0.9 - i * 0.05),
+      slope: randomRange(0.15, 0.3),
+    });
+    branches.right.push({
+      len: randomRange(0.8, 1.3),
+      height: randomRange(0.5 - i * 0.05, 0.8 - i * 0.05),
+      slope: randomRange(0.15, 0.3),
     });
   }
+
+  // generate numerous small leaves around the canopy
+  const leaves = [];
+  const hue = randomRange(100, 140);
+  const count = Math.floor(randomRange(15, 25));
+  for (let i = 0; i < count; i++) {
+    leaves.push({
+      dx: randomRange(-0.7, 0.7),
+      dy: randomRange(-0.6, 0.1),
+      rx: randomRange(0.1, 0.2),
+      ry: randomRange(0.2, 0.3),
+      angle: randomRange(0, Math.PI * 2),
+      color: `hsl(${hue + randomRange(-10, 10)}, ${60 + randomRange(-5, 5)}%, ${35 + randomRange(-5, 5)}%)`,
+    });
+  }
+
   return {
     width,
     height,
     trunkRatio,
-    leafShapes,
-    branches: {
-      left: { len: randomRange(0.8, 1.2), height: randomRange(0.8, 0.95) },
-      right: { len: randomRange(0.8, 1.2), height: randomRange(0.5, 0.8) },
-    },
+    branches,
+    leaves,
   };
 }
 
@@ -655,32 +673,49 @@ function drawObstacles() {
       ctx.strokeStyle = "#8B4513";
       ctx.lineWidth = trunkWidth * 0.3;
       ctx.beginPath();
-      const lb = o.branches?.left || { len: 1, height: 0.9 };
-      const rb = o.branches?.right || { len: 1, height: 0.7 };
-      ctx.moveTo(o.x, groundCenter - o.height * 0.7);
-      ctx.lineTo(
-        o.x - trunkWidth * lb.len,
-        groundCenter - o.height * lb.height,
-      );
-      ctx.moveTo(o.x, groundCenter - o.height * 0.5);
-      ctx.lineTo(
-        o.x + trunkWidth * rb.len,
-        groundCenter - o.height * rb.height,
-      );
+      const lbs = o.branches?.left || [{ len: 1, height: 0.9, slope: 0.2 }];
+      const rbs = o.branches?.right || [{ len: 1, height: 0.7, slope: 0.2 }];
+      lbs.forEach((b) => {
+        ctx.moveTo(o.x, groundCenter - o.height * b.height);
+        ctx.lineTo(
+          o.x - trunkWidth * b.len,
+          groundCenter - o.height * (b.height + b.slope),
+        );
+      });
+      rbs.forEach((b) => {
+        ctx.moveTo(o.x, groundCenter - o.height * b.height);
+        ctx.lineTo(
+          o.x + trunkWidth * b.len,
+          groundCenter - o.height * (b.height + b.slope),
+        );
+      });
       ctx.stroke();
 
       // draw layered canopy for more detail
       const r = o.width;
-      (o.leafShapes || []).forEach((leaf) => {
+      (o.leaves || []).forEach((leaf) => {
         ctx.fillStyle = leaf.color;
         ctx.beginPath();
-        ctx.arc(
-          o.x + leaf.dx * r,
-          groundCenter - o.height + leaf.dy * r,
-          r * leaf.scale,
-          0,
-          Math.PI * 2,
-        );
+        if (ctx.ellipse) {
+          ctx.ellipse(
+            o.x + leaf.dx * r,
+            groundCenter - o.height + leaf.dy * r,
+            r * leaf.rx,
+            r * leaf.ry,
+            leaf.angle,
+            0,
+            Math.PI * 2,
+          );
+        } else {
+          // fallback for environments without ellipse
+          ctx.arc(
+            o.x + leaf.dx * r,
+            groundCenter - o.height + leaf.dy * r,
+            r * ((leaf.rx + leaf.ry) / 2),
+            0,
+            Math.PI * 2,
+          );
+        }
         ctx.fill();
       });
     } else if (o.type === "water") {
