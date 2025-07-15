@@ -7,6 +7,7 @@ const hole = {
   radius: 12,
   greenRadius: 80,
   cupDepth: 15,
+  contour: 0,
   par: 4,
   distance: 0,
 };
@@ -122,6 +123,9 @@ function setupCourse() {
   terrainLeft = randomRange(-20, 20);
   terrainRight = randomRange(-20, 20);
   hole.x = randomRange(canvas.width * 0.7, canvas.width - 80);
+  const baseSlope = -(terrainRight - terrainLeft) / canvas.width;
+  hole.contour = baseSlope * 2 + randomRange(-0.2, 0.2);
+  hole.contour = Math.max(-0.4, Math.min(0.4, hole.contour));
   hole.y = groundHeightAt(hole.x);
   // distance the ball can travel past the hole before penalty
   hole.maxOvershoot = randomRange(canvas.width * 0.2, canvas.width * 0.4);
@@ -280,11 +284,12 @@ let bunkerPenaltyApplied = false;
 // how strongly gravity pulls the ball along slopes
 const SLOPE_ACCEL = 0.2;
 
-const HOLE_ELEVATION = 8; // max downward dip of the green around the hole
+const HOLE_ELEVATION = 12; // max downward dip of the green around the hole
 
 function holeElevationAt(x) {
-  const dx = Math.abs(x - hole.x);
-  if (dx > hole.greenRadius) return 0;
+  const center = hole.x + hole.contour * hole.greenRadius;
+  const dx = x - center;
+  if (Math.abs(dx) > hole.greenRadius) return 0;
   const t = dx / hole.greenRadius;
   return (HOLE_ELEVATION * (1 + Math.cos(Math.PI * t))) / 2;
 }
@@ -302,13 +307,12 @@ function groundHeightAt(x) {
 function groundSlopeAt(x) {
   const baseSlope = -(terrainRight - terrainLeft) / canvas.width;
   let slope = baseSlope;
-  const dx = x - hole.x;
+  const center = hole.x + hole.contour * hole.greenRadius;
+  const dx = x - center;
   const r = hole.greenRadius;
   if (Math.abs(dx) <= r) {
-    const sign = Math.sign(dx);
-    const t = Math.abs(dx) / r;
-    slope +=
-      ((-HOLE_ELEVATION * Math.PI) / (2 * r)) * Math.sin(Math.PI * t) * sign;
+    const t = dx / r;
+    slope += ((-HOLE_ELEVATION * Math.PI) / (2 * r)) * Math.sin(Math.PI * t);
   }
   return slope;
 }
@@ -535,7 +539,15 @@ function drawHole() {
   ctx.closePath();
   ctx.clip();
   ctx.beginPath();
-  ctx.ellipse(hole.x, hole.y, hole.greenRadius, vertRadius, 0, 0, Math.PI * 2);
+  ctx.ellipse(
+    hole.x + hole.greenRadius * hole.contour,
+    hole.y,
+    hole.greenRadius,
+    vertRadius,
+    0,
+    0,
+    Math.PI * 2,
+  );
   ctx.fillStyle = "#3cb371";
   ctx.fill();
   ctx.restore();

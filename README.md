@@ -8,7 +8,7 @@ Open `index.html` in a web browser to access the home menu. Choose **Start Game*
 An on-screen arrow shows your current aim direction. Press the Space key once to start the power meter and press again to launch the ball. Try to land it in the hole on the right side of the screen.
 Visit the **Settings** page from the home menu to toggle between light and dark themes. Your preference is saved across visits and defaults to your browser's color scheme.
 Avoid trees, water and bunkers along the way. The green around the hole is slicker, so the ball rolls farther. Each hole may have between one and three trees that vary in size, so pay attention to your surroundings. If your shot lands in the water hazard a penalty stroke is added and the ball is dropped on the side of the water farther from the hole.
-The ground gently slopes between the tee and hole, so elevation can change from hole to hole.
+The ground gently slopes between the tee and hole, so elevation can change from hole to hole. The green may also feature a subtle contour that follows the surrounding terrain.
 Press **R** to rehit from your previous location. This counts your last stroke and adds a penalty stroke, unless that stroke already incurred a water or out-of-bounds penalty.
 Press **N** to restart the current hole from the tee without changing the layout.
 
