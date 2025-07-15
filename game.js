@@ -55,6 +55,8 @@ let hazardPenalty = false;
 const SWING_FRAMES = 15; // frames to show club swing animation
 let swingFrames = 0;
 let golferX = ball.x - 20;
+const DANCE_DURATION = 300; // frames for victory dance (5s)
+let danceFrames = 0;
 
 function resizeCanvas() {
   canvas.width = window.innerWidth;
@@ -228,6 +230,7 @@ function nextHole() {
   }
   hits = 0;
   holeCompleted = false;
+  danceFrames = 0;
   updateCounter();
   updateHoleInfo();
   setupCourse();
@@ -239,6 +242,7 @@ function nextHole() {
 function restartHole() {
   hits = 0;
   holeCompleted = false;
+  danceFrames = 0;
   updateCounter();
   // keep the current hole layout and just reset the ball
   updateHoleInfo();
@@ -335,6 +339,7 @@ function launch() {
 
 function update() {
   if (swingFrames > 0) swingFrames--;
+  if (danceFrames > 0) danceFrames--;
   if (ball.falling) {
     ball.vy += GRAVITY;
     ball.y += ball.vy;
@@ -348,7 +353,10 @@ function update() {
       holeCompleted = true;
       scores.push(hits);
       updateScoreboard();
-      setTimeout(nextHole, 1000);
+      danceFrames = DANCE_DURATION;
+      meterActive = false;
+      powerBar.style.display = "none";
+      setTimeout(nextHole, 5000);
     }
     return;
   }
@@ -653,17 +661,31 @@ function drawObstacles() {
 
 function drawGolfer() {
   const groundY = groundHeightAt(golferX);
-  const x = golferX;
-  const y = groundY;
+  let x = golferX;
+  let y = groundY;
+  const dancing = danceFrames > 0;
+  if (dancing) {
+    const t = (DANCE_DURATION - danceFrames) / 10;
+    x += Math.sin(t) * 5;
+    y -= Math.abs(Math.sin(t)) * 5;
+  }
   ctx.strokeStyle = "black";
   ctx.lineWidth = 2;
 
   // legs
   ctx.beginPath();
-  ctx.moveTo(x, y - 20);
-  ctx.lineTo(x - 5, y);
-  ctx.moveTo(x, y - 20);
-  ctx.lineTo(x + 5, y);
+  if (dancing) {
+    const legSwing = Math.sin((DANCE_DURATION - danceFrames) / 5) * 5;
+    ctx.moveTo(x, y - 20);
+    ctx.lineTo(x - 5 - legSwing, y);
+    ctx.moveTo(x, y - 20);
+    ctx.lineTo(x + 5 + legSwing, y);
+  } else {
+    ctx.moveTo(x, y - 20);
+    ctx.lineTo(x - 5, y);
+    ctx.moveTo(x, y - 20);
+    ctx.lineTo(x + 5, y);
+  }
   ctx.stroke();
 
   // body
@@ -674,37 +696,47 @@ function drawGolfer() {
 
   // arms
   ctx.beginPath();
-  ctx.moveTo(x, y - 32);
-  ctx.lineTo(x - 8, y - 24);
-  ctx.stroke();
-
-  const handX = x + 8;
-  const handY = y - 24;
-  ctx.beginPath();
-  ctx.moveTo(x, y - 32);
-  ctx.lineTo(handX, handY);
-  ctx.stroke();
-
-  // club angle
-  const progress = swingFrames > 0 ? 1 - swingFrames / SWING_FRAMES : 0;
-  const baseAngle = -Math.PI / 3;
-  const clubAngle = baseAngle + progress * 1.5;
-  const clubLen = 25;
-  const clubX = handX + Math.cos(clubAngle) * clubLen;
-  const clubY = handY + Math.sin(clubAngle) * clubLen;
-
-  ctx.beginPath();
-  ctx.moveTo(handX, handY);
-  ctx.lineTo(clubX, clubY);
-  ctx.stroke();
-
-  // swing motion
-  if (swingFrames > 0) {
-    ctx.strokeStyle = "rgba(0,0,0,0.5)";
-    ctx.beginPath();
-    ctx.arc(handX, handY, clubLen * 1.2, baseAngle, clubAngle);
+  if (dancing) {
+    const armSwing = Math.sin((DANCE_DURATION - danceFrames) / 4) * 8;
+    ctx.moveTo(x, y - 32);
+    ctx.lineTo(x - 8 - armSwing, y - 24);
     ctx.stroke();
-    ctx.strokeStyle = "black";
+
+    ctx.beginPath();
+    ctx.moveTo(x, y - 32);
+    ctx.lineTo(x + 8 + armSwing, y - 24);
+    ctx.stroke();
+  } else {
+    ctx.moveTo(x, y - 32);
+    ctx.lineTo(x - 8, y - 24);
+    ctx.stroke();
+
+    const handX = x + 8;
+    const handY = y - 24;
+    ctx.beginPath();
+    ctx.moveTo(x, y - 32);
+    ctx.lineTo(handX, handY);
+    ctx.stroke();
+
+    const progress = swingFrames > 0 ? 1 - swingFrames / SWING_FRAMES : 0;
+    const baseAngle = -Math.PI / 3;
+    const clubAngle = baseAngle + progress * 1.5;
+    const clubLen = 25;
+    const clubX = handX + Math.cos(clubAngle) * clubLen;
+    const clubY = handY + Math.sin(clubAngle) * clubLen;
+
+    ctx.beginPath();
+    ctx.moveTo(handX, handY);
+    ctx.lineTo(clubX, clubY);
+    ctx.stroke();
+
+    if (swingFrames > 0) {
+      ctx.strokeStyle = "rgba(0,0,0,0.5)";
+      ctx.beginPath();
+      ctx.arc(handX, handY, clubLen * 1.2, baseAngle, clubAngle);
+      ctx.stroke();
+      ctx.strokeStyle = "black";
+    }
   }
 
   // head
@@ -714,7 +746,7 @@ function drawGolfer() {
 }
 
 function drawAim() {
-  if (ball.moving) return;
+  if (ball.moving || danceFrames > 0) return;
   // constant length so aim does not scale with power meter
   const len = 80;
   const endX = ball.x + Math.cos(angle) * len;
@@ -761,8 +793,10 @@ function loop() {
 }
 
 window.addEventListener("keydown", (e) => {
-  if (e.code === "ArrowLeft" && !ball.moving) angle += 0.05; // inverted controls
-  if (e.code === "ArrowRight" && !ball.moving) angle -= 0.05; // inverted controls
+  if (e.code === "ArrowLeft" && !ball.moving && danceFrames === 0)
+    angle += 0.05; // inverted controls
+  if (e.code === "ArrowRight" && !ball.moving && danceFrames === 0)
+    angle -= 0.05; // inverted controls
   if (e.code === "KeyR") {
     ball.x = prevX;
     ball.y = prevY;
@@ -784,11 +818,12 @@ window.addEventListener("keydown", (e) => {
     }
     prevX = ball.x;
     prevY = ball.y;
+    danceFrames = 0;
   }
   if (e.code === "KeyN") {
     restartHole();
   }
-  if (e.code === "Space" && !ball.moving) {
+  if (e.code === "Space" && !ball.moving && danceFrames === 0) {
     if (!meterActive) {
       meterActive = true;
       meterPercent = 0;
@@ -804,7 +839,10 @@ window.addEventListener("keydown", (e) => {
   }
 });
 
-if (typeof window !== "undefined" && (typeof module === "undefined" || !module.exports)) {
+if (
+  typeof window !== "undefined" &&
+  (typeof module === "undefined" || !module.exports)
+) {
   loop();
 }
 
