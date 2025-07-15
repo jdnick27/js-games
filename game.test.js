@@ -77,7 +77,6 @@ test("groundSlopeAt calculates slope near hole", () => {
     ((-game.HOLE_ELEVATION * Math.PI) / (2 * 100)) * Math.sin(Math.PI * 0.5);
   expect(game.groundSlopeAt(50)).toBeCloseTo(expected);
 });
-
 test("ballInBunker detects when ball is in bunker", () => {
   const canvas = document.getElementById("game");
   canvas.height = 200;
