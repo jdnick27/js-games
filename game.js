@@ -52,6 +52,9 @@ let viewOffset = 0; // camera offset to keep ball in view
 let prevX = 50;
 let prevY = 0;
 let hazardPenalty = false;
+const SWING_FRAMES = 15; // frames to show club swing animation
+let swingFrames = 0;
+let golferX = ball.x - 20;
 
 function resizeCanvas() {
   canvas.width = window.innerWidth;
@@ -167,6 +170,7 @@ function setupCourse() {
 
   ball.x = 50;
   ball.y = canvas.height - GROUND_THICKNESS - BALL_RADIUS;
+  golferX = ball.x - 20;
   viewOffset = 0;
   prevX = ball.x;
   prevY = ball.y;
@@ -241,6 +245,7 @@ function restartHole() {
   ball.radius = BALL_RADIUS;
   ball.x = 50;
   ball.y = canvas.height - GROUND_THICKNESS - BALL_RADIUS;
+  golferX = ball.x - 20;
   ball.vx = 0;
   ball.vy = 0;
   ball.moving = false;
@@ -320,6 +325,7 @@ function launch() {
   prevX = ball.x;
   prevY = ball.y;
   hazardPenalty = false;
+  swingFrames = SWING_FRAMES;
   ball.vx = Math.cos(angle) * scaled;
   ball.vy = -Math.sin(angle) * scaled;
   ball.moving = true;
@@ -328,6 +334,7 @@ function launch() {
 }
 
 function update() {
+  if (swingFrames > 0) swingFrames--;
   if (ball.falling) {
     ball.vy += GRAVITY;
     ball.y += ball.vy;
@@ -337,6 +344,7 @@ function update() {
     if (ball.y - ball.radius > hole.y + hole.cupDepth) {
       ball.falling = false;
       ball.moving = false;
+      golferX = ball.x - 20;
       holeCompleted = true;
       scores.push(hits);
       updateScoreboard();
@@ -389,6 +397,7 @@ function update() {
         ball.vx = 0;
         ball.vy = 0;
         ball.moving = false;
+        golferX = ball.x - 20;
       }
     }
 
@@ -427,6 +436,7 @@ function update() {
             ball.vx = 0;
             ball.vy = 0;
             ball.moving = false;
+            golferX = ball.x - 20;
           }
         }
       }
@@ -444,6 +454,7 @@ function update() {
       ball.vx = 0;
       ball.vy = 0;
       ball.moving = false;
+      golferX = ball.x - 20;
       viewOffset = 0;
     }
   }
@@ -640,6 +651,68 @@ function drawObstacles() {
   });
 }
 
+function drawGolfer() {
+  const groundY = groundHeightAt(golferX);
+  const x = golferX;
+  const y = groundY;
+  ctx.strokeStyle = "black";
+  ctx.lineWidth = 2;
+
+  // legs
+  ctx.beginPath();
+  ctx.moveTo(x, y - 20);
+  ctx.lineTo(x - 5, y);
+  ctx.moveTo(x, y - 20);
+  ctx.lineTo(x + 5, y);
+  ctx.stroke();
+
+  // body
+  ctx.beginPath();
+  ctx.moveTo(x, y - 40);
+  ctx.lineTo(x, y - 20);
+  ctx.stroke();
+
+  // arms
+  ctx.beginPath();
+  ctx.moveTo(x, y - 32);
+  ctx.lineTo(x - 8, y - 24);
+  ctx.stroke();
+
+  const handX = x + 8;
+  const handY = y - 24;
+  ctx.beginPath();
+  ctx.moveTo(x, y - 32);
+  ctx.lineTo(handX, handY);
+  ctx.stroke();
+
+  // club angle
+  const progress = swingFrames > 0 ? 1 - swingFrames / SWING_FRAMES : 0;
+  const baseAngle = -Math.PI / 3;
+  const clubAngle = baseAngle + progress * 1.5;
+  const clubLen = 25;
+  const clubX = handX + Math.cos(clubAngle) * clubLen;
+  const clubY = handY + Math.sin(clubAngle) * clubLen;
+
+  ctx.beginPath();
+  ctx.moveTo(handX, handY);
+  ctx.lineTo(clubX, clubY);
+  ctx.stroke();
+
+  // swing motion
+  if (swingFrames > 0) {
+    ctx.strokeStyle = "rgba(0,0,0,0.5)";
+    ctx.beginPath();
+    ctx.arc(handX, handY, clubLen * 1.2, baseAngle, clubAngle);
+    ctx.stroke();
+    ctx.strokeStyle = "black";
+  }
+
+  // head
+  ctx.beginPath();
+  ctx.arc(x, y - 48, 6, 0, Math.PI * 2);
+  ctx.stroke();
+}
+
 function drawAim() {
   if (ball.moving) return;
   // constant length so aim does not scale with power meter
@@ -680,6 +753,7 @@ function loop() {
   drawGround();
   drawObstacles();
   drawHole();
+  drawGolfer();
   drawBall();
   drawAim();
   ctx.restore();
@@ -695,6 +769,7 @@ window.addEventListener("keydown", (e) => {
     ball.vx = 0;
     ball.vy = 0;
     ball.moving = false;
+    golferX = ball.x - 20;
     ball.radius = BALL_RADIUS;
     ball.falling = false;
     power = 15;
