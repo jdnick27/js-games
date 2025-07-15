@@ -796,7 +796,7 @@ function drawGolfer() {
 }
 
 function drawAim() {
-  if (ball.moving || danceFrames > 0) return;
+  if (ball.moving || danceFrames > 0 || holeCompleted) return;
   // constant length so aim does not scale with power meter
   const len = 80;
   const endX = ball.x + Math.cos(angle) * len;
