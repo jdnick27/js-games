@@ -54,6 +54,7 @@ let prevY = 0;
 let hazardPenalty = false;
 const SWING_FRAMES = 15; // frames to show club swing animation
 let swingFrames = 0;
+let golferX = ball.x - 20;
 
 function resizeCanvas() {
   canvas.width = window.innerWidth;
@@ -169,6 +170,7 @@ function setupCourse() {
 
   ball.x = 50;
   ball.y = canvas.height - GROUND_THICKNESS - BALL_RADIUS;
+  golferX = ball.x - 20;
   viewOffset = 0;
   prevX = ball.x;
   prevY = ball.y;
@@ -243,6 +245,7 @@ function restartHole() {
   ball.radius = BALL_RADIUS;
   ball.x = 50;
   ball.y = canvas.height - GROUND_THICKNESS - BALL_RADIUS;
+  golferX = ball.x - 20;
   ball.vx = 0;
   ball.vy = 0;
   ball.moving = false;
@@ -341,6 +344,7 @@ function update() {
     if (ball.y - ball.radius > hole.y + hole.cupDepth) {
       ball.falling = false;
       ball.moving = false;
+      golferX = ball.x - 20;
       holeCompleted = true;
       scores.push(hits);
       updateScoreboard();
@@ -393,6 +397,7 @@ function update() {
         ball.vx = 0;
         ball.vy = 0;
         ball.moving = false;
+        golferX = ball.x - 20;
       }
     }
 
@@ -431,6 +436,7 @@ function update() {
             ball.vx = 0;
             ball.vy = 0;
             ball.moving = false;
+            golferX = ball.x - 20;
           }
         }
       }
@@ -448,6 +454,7 @@ function update() {
       ball.vx = 0;
       ball.vy = 0;
       ball.moving = false;
+      golferX = ball.x - 20;
       viewOffset = 0;
     }
   }
@@ -645,8 +652,8 @@ function drawObstacles() {
 }
 
 function drawGolfer() {
-  const groundY = groundHeightAt(ball.x);
-  const x = ball.x - 20;
+  const groundY = groundHeightAt(golferX);
+  const x = golferX;
   const y = groundY;
   ctx.strokeStyle = "black";
   ctx.lineWidth = 2;
@@ -762,6 +769,7 @@ window.addEventListener("keydown", (e) => {
     ball.vx = 0;
     ball.vy = 0;
     ball.moving = false;
+    golferX = ball.x - 20;
     ball.radius = BALL_RADIUS;
     ball.falling = false;
     power = 15;
