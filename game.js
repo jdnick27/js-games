@@ -112,7 +112,7 @@ function createObstacle(type, minX, maxX, props, avoid = []) {
 function setupCourse() {
   // randomize hole and obstacle positions for each hole
   hole.x = randomRange(canvas.width * 0.7, canvas.width - 80);
-  hole.y = canvas.height - GROUND_THICKNESS;
+  hole.y = canvas.height - GROUND_THICKNESS + holeElevationAt(hole.x);
   // distance the ball can travel past the hole before penalty
   hole.maxOvershoot = randomRange(canvas.width * 0.2, canvas.width * 0.4);
   hole.maxDistance = hole.x + hole.maxOvershoot;
@@ -147,16 +147,6 @@ function setupCourse() {
       ),
     );
   }
-  // Place the hill before water and sand so they avoid its space
-  obstacles.push(
-    createObstacle(
-      "hill",
-      canvas.width * 0.5,
-      canvas.width * 0.7,
-      { width: 100, height: 40 },
-      avoidGreen,
-    ),
-  );
   // Water hazards sit on top of the ground and extend halfway down
   obstacles.push(
     createObstacle(
@@ -185,16 +175,6 @@ function setupCourse() {
   prevY = ball.y;
   aimAtHole();
 }
-
-window.addEventListener("resize", () => {
-  resizeCanvas();
-  setupCourse();
-  updateHoleInfo();
-});
-resizeCanvas();
-setupCourse();
-updateHoleInfo();
-updateScoreboard();
 
 function updateCounter() {
   if (counterEl) {
@@ -290,27 +270,28 @@ let bunkerPenaltyApplied = false;
 // how strongly gravity pulls the ball along slopes
 const SLOPE_ACCEL = 0.2;
 
+const HOLE_ELEVATION = 8; // max downward dip of the green around the hole
+
+function holeElevationAt(x) {
+  const dx = Math.abs(x - hole.x);
+  if (dx > hole.greenRadius) return 0;
+  const t = dx / hole.greenRadius;
+  return (HOLE_ELEVATION * (1 + Math.cos(Math.PI * t))) / 2;
+}
+
 function groundHeightAt(x) {
   let y = canvas.height - GROUND_THICKNESS;
-  obstacles.forEach((o) => {
-    if (o.type === "hill" && x >= o.x && x <= o.x + o.width) {
-      const t = (x - o.x) / o.width;
-      const height = o.height * Math.sin(Math.PI * t);
-      y -= height;
-    }
-  });
+  y += holeElevationAt(x);
   return y;
 }
 
 function groundSlopeAt(x) {
-  let slope = 0;
-  obstacles.forEach((o) => {
-    if (o.type === "hill" && x >= o.x && x <= o.x + o.width) {
-      const t = (x - o.x) / o.width;
-      slope = ((-o.height * Math.PI) / o.width) * Math.cos(Math.PI * t);
-    }
-  });
-  return slope;
+  const dx = x - hole.x;
+  const r = hole.greenRadius;
+  if (Math.abs(dx) > r) return 0;
+  const sign = Math.sign(dx);
+  const t = Math.abs(dx) / r;
+  return ((-HOLE_ELEVATION * Math.PI) / (2 * r)) * Math.sin(Math.PI * t) * sign;
 }
 
 function ballInBunker() {
@@ -523,7 +504,16 @@ function drawHole() {
   const vertRadius = hole.greenRadius * 0.5;
   ctx.save();
   ctx.beginPath();
-  ctx.rect(0, hole.y, canvas.width, canvas.height - hole.y);
+  ctx.moveTo(hole.x - hole.greenRadius, canvas.height);
+  for (
+    let x = hole.x - hole.greenRadius;
+    x <= hole.x + hole.greenRadius;
+    x += 2
+  ) {
+    ctx.lineTo(x, groundHeightAt(x));
+  }
+  ctx.lineTo(hole.x + hole.greenRadius, canvas.height);
+  ctx.closePath();
   ctx.clip();
   ctx.beginPath();
   ctx.ellipse(hole.x, hole.y, hole.greenRadius, vertRadius, 0, 0, Math.PI * 2);
@@ -534,7 +524,16 @@ function drawHole() {
   // actual hole
   ctx.save();
   ctx.beginPath();
-  ctx.rect(0, hole.y, canvas.width, canvas.height - hole.y);
+  ctx.moveTo(hole.x - hole.radius - 4, canvas.height);
+  for (
+    let x = hole.x - hole.radius - 4;
+    x <= hole.x + hole.radius + 4;
+    x += 2
+  ) {
+    ctx.lineTo(x, groundHeightAt(x));
+  }
+  ctx.lineTo(hole.x + hole.radius + 4, canvas.height);
+  ctx.closePath();
   ctx.clip();
   ctx.beginPath();
   ctx.arc(hole.x, hole.y, hole.radius + 3, 0, Math.PI * 2);
@@ -856,6 +855,15 @@ if (
   typeof window !== "undefined" &&
   (typeof module === "undefined" || !module.exports)
 ) {
+  window.addEventListener("resize", () => {
+    resizeCanvas();
+    setupCourse();
+    updateHoleInfo();
+  });
+  resizeCanvas();
+  setupCourse();
+  updateHoleInfo();
+  updateScoreboard();
   loop();
 }
 
@@ -874,5 +882,6 @@ if (typeof module !== "undefined" && module.exports) {
     obstacles,
     ball,
     hole,
+    HOLE_ELEVATION,
   };
 }
