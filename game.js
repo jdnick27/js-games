@@ -644,7 +644,7 @@ function drawObstacles() {
         ctx.lineTo(x, groundHeightAt(x));
       }
       for (let x = o.x + o.width; x >= o.x; x -= 2) {
-        ctx.lineTo(x, groundHeightAt(x) - o.depth);
+        ctx.lineTo(x, groundHeightAt(x) + o.depth);
       }
       ctx.closePath();
       ctx.fill();
@@ -746,7 +746,6 @@ if (typeof window !== "undefined" && (typeof module === "undefined" || !module.e
 }
 
 if (typeof module !== "undefined" && module.exports) {
-  /* global module */
   module.exports = {
     randomRange,
     obstacleRange,
