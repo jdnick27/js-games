@@ -275,12 +275,14 @@ function restartHole() {
 
 let power = 10; // selected launch power
 const MAX_POWER = 50; // maximum launch strength shown by meter
-const POWER_SCALE = 0.5; // scale factor for actual launch strength
+// Scale factor for actual launch strength. Lower values slow the ball's flight
+const POWER_SCALE = 0.3;
 let meterActive = false;
 let meterPercent = 0;
 let meterDirection = 1;
 const METER_SPEED = 1.4; // percent per frame (30% slower)
-const GRAVITY = 0.4;
+// Gravity also affects overall ball speed so reduce it to keep motion smooth
+const GRAVITY = 0.25;
 // Friction values for different surfaces
 const FRICTION_NORMAL = 0.99;
 const FRICTION_GREEN = 0.995;
