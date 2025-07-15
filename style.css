@@ -49,6 +49,12 @@ body {
   font-weight: bold;
 }
 
+#message {
+  font-weight: bold;
+  color: red;
+  margin-top: 5px;
+}
+
 #powerBar {
   position: absolute;
   bottom: 40px;
