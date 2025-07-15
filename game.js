@@ -91,6 +91,33 @@ function rangesOverlap(a, b) {
   return a.left < b.right && a.right > b.left;
 }
 
+function createTreeProps(scale) {
+  const width = TREE_BASE_WIDTH * scale;
+  const height = TREE_BASE_HEIGHT * scale;
+  const trunkRatio = randomRange(0.3, 0.5);
+  const leafShapes = [];
+  const hue = randomRange(100, 140);
+  const layerCount = Math.floor(randomRange(4, 7));
+  for (let i = 0; i < layerCount; i++) {
+    leafShapes.push({
+      dx: randomRange(-0.6, 0.6),
+      dy: randomRange(-0.4, 0.6),
+      scale: randomRange(0.4, 1),
+      color: `hsl(${hue + randomRange(-10, 10)}, ${65 + randomRange(-10, 10)}%, ${40 + randomRange(-10, 10)}%)`,
+    });
+  }
+  return {
+    width,
+    height,
+    trunkRatio,
+    leafShapes,
+    branches: {
+      left: { len: randomRange(0.8, 1.2), height: randomRange(0.8, 0.95) },
+      right: { len: randomRange(0.8, 1.2), height: randomRange(0.5, 0.8) },
+    },
+  };
+}
+
 function createObstacle(type, minX, maxX, props, avoid = []) {
   let ob;
   let attempts = 0;
@@ -142,7 +169,7 @@ function setupCourse() {
         "tree",
         canvas.width * 0.2,
         canvas.width * 0.4,
-        { width: TREE_BASE_WIDTH * scale, height: TREE_BASE_HEIGHT * scale },
+        createTreeProps(scale),
         avoidGreen,
       ),
     );
@@ -597,7 +624,7 @@ function drawObstacles() {
     const groundCenter = groundHeightAt(o.x + (o.width || 0) / 2);
     if (o.type === "tree") {
       // add slight gradient to the trunk
-      const trunkWidth = o.width * 0.4;
+      const trunkWidth = o.width * (o.trunkRatio || 0.4);
       const trunkGrad = ctx.createLinearGradient(
         0,
         groundCenter - o.height,
@@ -628,54 +655,29 @@ function drawObstacles() {
       ctx.strokeStyle = "#8B4513";
       ctx.lineWidth = trunkWidth * 0.3;
       ctx.beginPath();
+      const lb = o.branches?.left || { len: 1, height: 0.9 };
+      const rb = o.branches?.right || { len: 1, height: 0.7 };
       ctx.moveTo(o.x, groundCenter - o.height * 0.7);
-      ctx.lineTo(o.x - trunkWidth, groundCenter - o.height * 0.9);
+      ctx.lineTo(
+        o.x - trunkWidth * lb.len,
+        groundCenter - o.height * lb.height,
+      );
       ctx.moveTo(o.x, groundCenter - o.height * 0.5);
-      ctx.lineTo(o.x + trunkWidth, groundCenter - o.height * 0.7);
+      ctx.lineTo(
+        o.x + trunkWidth * rb.len,
+        groundCenter - o.height * rb.height,
+      );
       ctx.stroke();
 
       // draw layered canopy for more detail
       const r = o.width;
-      ctx.fillStyle = "#228B22";
-      ctx.beginPath();
-      ctx.arc(o.x, groundCenter - o.height, r, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.fillStyle = "#2e8b57";
-      ctx.beginPath();
-      ctx.arc(
-        o.x - r * 0.6,
-        groundCenter - o.height + r * 0.3,
-        r * 0.8,
-        0,
-        Math.PI * 2,
-      );
-      ctx.arc(
-        o.x + r * 0.6,
-        groundCenter - o.height + r * 0.3,
-        r * 0.8,
-        0,
-        Math.PI * 2,
-      );
-      ctx.fill();
-
-      ctx.fillStyle = "#3cb371";
-      ctx.beginPath();
-      ctx.arc(o.x, groundCenter - o.height + r * 0.4, r * 0.6, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.fillStyle = "#006400";
-      [
-        [-0.4, -0.2, 0.5],
-        [0.4, -0.2, 0.5],
-        [-0.2, 0.5, 0.5],
-        [0.2, 0.5, 0.5],
-      ].forEach(([dx, dy, scale]) => {
+      (o.leafShapes || []).forEach((leaf) => {
+        ctx.fillStyle = leaf.color;
         ctx.beginPath();
         ctx.arc(
-          o.x + dx * r,
-          groundCenter - o.height + dy * r,
-          r * scale,
+          o.x + leaf.dx * r,
+          groundCenter - o.height + leaf.dy * r,
+          r * leaf.scale,
           0,
           Math.PI * 2,
         );
