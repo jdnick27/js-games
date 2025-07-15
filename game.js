@@ -295,27 +295,35 @@ let bunkerPenaltyApplied = false;
 // how strongly gravity pulls the ball along slopes
 const SLOPE_ACCEL = 0.2;
 
+function smoothStep(t) {
+  return t * t * (3 - 2 * t);
+}
+
 function groundHeightAt(x) {
-  let y = canvas.height - GROUND_THICKNESS;
+  let base = canvas.height - GROUND_THICKNESS;
   obstacles.forEach((o) => {
     if (o.type === "hill" && x >= o.x && x <= o.x + o.width) {
       const t = (x - o.x) / o.width;
       const height = o.height * Math.sin(Math.PI * t);
-      y -= height;
+      base -= height;
     }
   });
-  return y;
+
+  const dx = Math.abs(x - hole.x);
+  if (dx < hole.greenRadius) {
+    const flat = hole.greenRadius * 0.4;
+    const t =
+      dx <= flat ? 0 : smoothStep((dx - flat) / (hole.greenRadius - flat));
+    base = hole.y * (1 - t) + base * t;
+  }
+
+  return base;
 }
 
 function groundSlopeAt(x) {
-  let slope = 0;
-  obstacles.forEach((o) => {
-    if (o.type === "hill" && x >= o.x && x <= o.x + o.width) {
-      const t = (x - o.x) / o.width;
-      slope = ((-o.height * Math.PI) / o.width) * Math.cos(Math.PI * t);
-    }
-  });
-  return slope;
+  const h1 = groundHeightAt(x + 1);
+  const h0 = groundHeightAt(x - 1);
+  return (h1 - h0) / 2;
 }
 
 function ballInBunker() {
