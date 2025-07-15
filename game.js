@@ -726,6 +726,10 @@ window.addEventListener("keydown", (e) => {
   }
 });
 
+if (typeof window !== "undefined" && (typeof module === "undefined" || !module.exports)) {
+  loop();
+}
+
 if (typeof module !== "undefined" && module.exports) {
   /* global module */
   module.exports = {
