@@ -142,6 +142,14 @@ function setupCourse() {
   }
   obstacles.push(hill);
 
+  // carve a shallow bowl into the hill for the green
+  obstacles.push({
+    type: "hill",
+    x: hole.x - hole.greenRadius,
+    width: hole.greenRadius * 2,
+    height: -(hill.height * 0.3),
+  });
+
   // place water avoiding tee box, green and the hill
   const waterWidth = randomRange(80, 120);
   const water = createObstacle(
@@ -505,22 +513,26 @@ function drawGround() {
 }
 
 function drawHole() {
-  // green area - draw flattened ellipse and clip so nothing shows above ground
-  const vertRadius = hole.greenRadius * 0.5;
+  // fill the green following the ground contour
+  const start = hole.x - hole.greenRadius;
+  const end = hole.x + hole.greenRadius;
   ctx.save();
   ctx.beginPath();
-  ctx.rect(0, hole.y, canvas.width, canvas.height - hole.y);
-  ctx.clip();
-  ctx.beginPath();
-  ctx.ellipse(hole.x, hole.y, hole.greenRadius, vertRadius, 0, 0, Math.PI * 2);
+  ctx.moveTo(start, canvas.height);
+  for (let x = start; x <= end; x += 2) {
+    ctx.lineTo(x, groundHeightAt(x));
+  }
+  ctx.lineTo(end, canvas.height);
+  ctx.closePath();
   ctx.fillStyle = "#3cb371";
   ctx.fill();
   ctx.restore();
 
   // actual hole
+  const groundY = groundHeightAt(hole.x);
   ctx.save();
   ctx.beginPath();
-  ctx.rect(0, hole.y, canvas.width, canvas.height - hole.y);
+  ctx.rect(0, groundY, canvas.width, canvas.height - groundY);
   ctx.clip();
   ctx.beginPath();
   ctx.arc(hole.x, hole.y, hole.radius + 3, 0, Math.PI * 2);
