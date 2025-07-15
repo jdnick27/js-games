@@ -52,6 +52,8 @@ let viewOffset = 0; // camera offset to keep ball in view
 let prevX = 50;
 let prevY = 0;
 let hazardPenalty = false;
+const SWING_FRAMES = 15; // frames to show club swing animation
+let swingFrames = 0;
 
 function resizeCanvas() {
   canvas.width = window.innerWidth;
@@ -320,6 +322,7 @@ function launch() {
   prevX = ball.x;
   prevY = ball.y;
   hazardPenalty = false;
+  swingFrames = SWING_FRAMES;
   ball.vx = Math.cos(angle) * scaled;
   ball.vy = -Math.sin(angle) * scaled;
   ball.moving = true;
@@ -328,6 +331,7 @@ function launch() {
 }
 
 function update() {
+  if (swingFrames > 0) swingFrames--;
   if (ball.falling) {
     ball.vy += GRAVITY;
     ball.y += ball.vy;
@@ -640,6 +644,68 @@ function drawObstacles() {
   });
 }
 
+function drawGolfer() {
+  const groundY = groundHeightAt(ball.x);
+  const x = ball.x - 20;
+  const y = groundY;
+  ctx.strokeStyle = "black";
+  ctx.lineWidth = 2;
+
+  // legs
+  ctx.beginPath();
+  ctx.moveTo(x, y - 20);
+  ctx.lineTo(x - 5, y);
+  ctx.moveTo(x, y - 20);
+  ctx.lineTo(x + 5, y);
+  ctx.stroke();
+
+  // body
+  ctx.beginPath();
+  ctx.moveTo(x, y - 40);
+  ctx.lineTo(x, y - 20);
+  ctx.stroke();
+
+  // arms
+  ctx.beginPath();
+  ctx.moveTo(x, y - 32);
+  ctx.lineTo(x - 8, y - 24);
+  ctx.stroke();
+
+  const handX = x + 8;
+  const handY = y - 24;
+  ctx.beginPath();
+  ctx.moveTo(x, y - 32);
+  ctx.lineTo(handX, handY);
+  ctx.stroke();
+
+  // club angle
+  const progress = swingFrames > 0 ? 1 - swingFrames / SWING_FRAMES : 0;
+  const baseAngle = -Math.PI / 3;
+  const clubAngle = baseAngle + progress * 1.5;
+  const clubLen = 25;
+  const clubX = handX + Math.cos(clubAngle) * clubLen;
+  const clubY = handY + Math.sin(clubAngle) * clubLen;
+
+  ctx.beginPath();
+  ctx.moveTo(handX, handY);
+  ctx.lineTo(clubX, clubY);
+  ctx.stroke();
+
+  // swing motion
+  if (swingFrames > 0) {
+    ctx.strokeStyle = "rgba(0,0,0,0.5)";
+    ctx.beginPath();
+    ctx.arc(handX, handY, clubLen * 1.2, baseAngle, clubAngle);
+    ctx.stroke();
+    ctx.strokeStyle = "black";
+  }
+
+  // head
+  ctx.beginPath();
+  ctx.arc(x, y - 48, 6, 0, Math.PI * 2);
+  ctx.stroke();
+}
+
 function drawAim() {
   if (ball.moving) return;
   // constant length so aim does not scale with power meter
@@ -680,6 +746,7 @@ function loop() {
   drawGround();
   drawObstacles();
   drawHole();
+  drawGolfer();
   drawBall();
   drawAim();
   ctx.restore();
