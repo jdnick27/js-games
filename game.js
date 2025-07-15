@@ -19,6 +19,8 @@ const TREE_BASE_HEIGHT = 60;
 const GROUND_THICKNESS = 20; // thickness of the ground from the bottom of the canvas
 // Rough conversion factor from pixels to yards for distance labels
 const PIXELS_TO_YARDS = 0.3;
+// width of the flat tee box area at the start of each hole
+const TEE_BOX_WIDTH = 100;
 
 const ball = {
   x: 50,
@@ -121,49 +123,59 @@ function setupCourse() {
     },
   ];
 
+  const teeRange = { left: 0, right: TEE_BOX_WIDTH };
+  const courseEnd = hole.x + hole.maxOvershoot;
+
   obstacles = [];
+
+  // first place a hill anywhere on the course
+  const hill = createObstacle(
+    "hill",
+    0,
+    courseEnd * 0.8,
+    { width: randomRange(80, 140), height: randomRange(30, 50) },
+    [],
+  );
+  if (hill.x < TEE_BOX_WIDTH) {
+    const diff = TEE_BOX_WIDTH - hill.x;
+    hill.x = TEE_BOX_WIDTH;
+    hill.width += diff;
+  }
+  obstacles.push(hill);
+
+  // place water avoiding tee box, green and the hill
+  const water = createObstacle(
+    "water",
+    TEE_BOX_WIDTH,
+    courseEnd * 0.7,
+    { width: 80 },
+    [teeRange, ...avoidGreen, { left: hill.x, right: hill.x + hill.width }],
+  );
+  obstacles.push(water);
+
+  // place bunker avoiding tee box, green and water
+  const bunker = createObstacle(
+    "bunker",
+    TEE_BOX_WIDTH,
+    courseEnd * 0.8,
+    { width: 80, depth: 12 },
+    [teeRange, ...avoidGreen, { left: water.x, right: water.x + water.width }],
+  );
+  obstacles.push(bunker);
+
   const treeCount = Math.floor(randomRange(1, 4));
   for (let i = 0; i < treeCount; i++) {
     const scale = randomRange(1.5, 3);
     obstacles.push(
       createObstacle(
         "tree",
-        canvas.width * 0.2,
-        canvas.width * 0.4,
+        TEE_BOX_WIDTH,
+        courseEnd * 0.9,
         { width: TREE_BASE_WIDTH * scale, height: TREE_BASE_HEIGHT * scale },
-        avoidGreen,
+        [teeRange, ...avoidGreen],
       ),
     );
   }
-  // Place the hill before water and sand so they avoid its space
-  obstacles.push(
-    createObstacle(
-      "hill",
-      canvas.width * 0.5,
-      canvas.width * 0.7,
-      { width: 100, height: 40 },
-      avoidGreen,
-    ),
-  );
-  // Water hazards sit on top of the ground and extend halfway down
-  obstacles.push(
-    createObstacle(
-      "water",
-      canvas.width * 0.4,
-      canvas.width * 0.6,
-      { width: 60 },
-      avoidGreen,
-    ),
-  );
-  obstacles.push(
-    createObstacle(
-      "bunker",
-      canvas.width * 0.6,
-      canvas.width * 0.8,
-      { width: 80, depth: 12 },
-      avoidGreen,
-    ),
-  );
 
   ball.x = 50;
   ball.y = canvas.height - GROUND_THICKNESS - BALL_RADIUS;
