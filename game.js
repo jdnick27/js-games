@@ -726,6 +726,20 @@ window.addEventListener("keydown", (e) => {
   }
 });
 
-updateCounter();
-updateHoleInfo();
-loop();
+if (typeof module !== "undefined" && module.exports) {
+  /* global module */
+  module.exports = {
+    randomRange,
+    obstacleRange,
+    obstaclesOverlap,
+    rangesOverlap,
+    groundHeightAt,
+    groundSlopeAt,
+    ballInBunker,
+    getFriction,
+    GROUND_THICKNESS,
+    obstacles,
+    ball,
+    hole,
+  };
+}
