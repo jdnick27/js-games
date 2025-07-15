@@ -128,10 +128,12 @@ function setupCourse() {
   obstacles = [];
 
   // create a broad rolling hill across most of the course
+  const hillWidth = randomRange(courseEnd * 0.3, courseEnd * 0.6);
+  let hillX = randomRange(0, courseEnd - hillWidth);
   const hill = {
     type: "hill",
-    x: 0,
-    width: courseEnd,
+    x: hillX,
+    width: hillWidth,
     height: randomRange(40, 80),
   };
   if (hill.x < TEE_BOX_WIDTH) {
