@@ -142,14 +142,12 @@ body {
 }
 
 #themeToggle {
-  position: absolute;
-  bottom: 10px;
-  right: 10px;
-  padding: 5px 10px;
+  padding: 10px 20px;
   background: var(--overlay-bg);
   border: 1px solid var(--border-color);
   border-radius: 5px;
   cursor: pointer;
+  margin-top: 20px;
 }
 #themeToggle:hover {
   background: var(--link-hover-bg);
