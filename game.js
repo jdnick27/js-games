@@ -497,7 +497,8 @@ function update() {
     }
   } else {
     if (ball.x - viewOffset < 100) {
-      viewOffset = Math.max(0, ball.x - 100);
+      // allow negative offsets so the camera can pan left of the tee
+      viewOffset = ball.x - 100;
     }
   }
 
