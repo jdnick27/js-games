@@ -263,7 +263,7 @@ const POWER_SCALE = 0.5; // scale factor for actual launch strength
 let meterActive = false;
 let meterPercent = 0;
 let meterDirection = 1;
-const METER_SPEED = 2; // percent per frame
+const METER_SPEED = 1.4; // percent per frame (30% slower)
 const GRAVITY = 0.4;
 // Friction values for different surfaces
 const FRICTION_NORMAL = 0.99;
