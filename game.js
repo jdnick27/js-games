@@ -614,6 +614,26 @@ function drawObstacles() {
         o.height,
       );
 
+      // bark lines
+      ctx.strokeStyle = "rgba(0,0,0,0.2)";
+      ctx.lineWidth = trunkWidth * 0.1;
+      for (let i = -0.3; i <= 0.3; i += 0.3) {
+        ctx.beginPath();
+        ctx.moveTo(o.x + i * trunkWidth, groundCenter);
+        ctx.lineTo(o.x + i * trunkWidth, groundCenter - o.height);
+        ctx.stroke();
+      }
+
+      // branches
+      ctx.strokeStyle = "#8B4513";
+      ctx.lineWidth = trunkWidth * 0.3;
+      ctx.beginPath();
+      ctx.moveTo(o.x, groundCenter - o.height * 0.7);
+      ctx.lineTo(o.x - trunkWidth, groundCenter - o.height * 0.9);
+      ctx.moveTo(o.x, groundCenter - o.height * 0.5);
+      ctx.lineTo(o.x + trunkWidth, groundCenter - o.height * 0.7);
+      ctx.stroke();
+
       // draw layered canopy for more detail
       const r = o.width;
       ctx.fillStyle = "#228B22";
@@ -643,6 +663,24 @@ function drawObstacles() {
       ctx.beginPath();
       ctx.arc(o.x, groundCenter - o.height + r * 0.4, r * 0.6, 0, Math.PI * 2);
       ctx.fill();
+
+      ctx.fillStyle = "#006400";
+      [
+        [-0.4, -0.2, 0.5],
+        [0.4, -0.2, 0.5],
+        [-0.2, 0.5, 0.5],
+        [0.2, 0.5, 0.5],
+      ].forEach(([dx, dy, scale]) => {
+        ctx.beginPath();
+        ctx.arc(
+          o.x + dx * r,
+          groundCenter - o.height + dy * r,
+          r * scale,
+          0,
+          Math.PI * 2,
+        );
+        ctx.fill();
+      });
     } else if (o.type === "water") {
       ctx.fillStyle = "#00bfff";
       ctx.beginPath();
