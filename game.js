@@ -295,10 +295,6 @@ let bunkerPenaltyApplied = false;
 // how strongly gravity pulls the ball along slopes
 const SLOPE_ACCEL = 0.2;
 
-function smoothStep(t) {
-  return t * t * (3 - 2 * t);
-}
-
 function groundHeightAt(x) {
   let base = canvas.height - GROUND_THICKNESS;
   obstacles.forEach((o) => {
@@ -308,14 +304,6 @@ function groundHeightAt(x) {
       base -= height;
     }
   });
-
-  const dx = Math.abs(x - hole.x);
-  if (dx < hole.greenRadius) {
-    const flat = hole.greenRadius * 0.4;
-    const t =
-      dx <= flat ? 0 : smoothStep((dx - flat) / (hole.greenRadius - flat));
-    base = hole.y * (1 - t) + base * t;
-  }
 
   return base;
 }
