@@ -57,6 +57,13 @@ let swingFrames = 0;
 let golferX = ball.x - 20;
 const DANCE_DURATION = 300; // frames for victory dance (5s)
 let danceFrames = 0;
+let angle = Math.PI / 4; // aiming angle in radians
+
+function aimAtHole() {
+  angle = Math.atan2(ball.y - hole.y, hole.x - ball.x);
+}
+
+let wasMoving = false;
 
 function resizeCanvas() {
   canvas.width = window.innerWidth;
@@ -176,6 +183,7 @@ function setupCourse() {
   viewOffset = 0;
   prevX = ball.x;
   prevY = ball.y;
+  aimAtHole();
 }
 
 window.addEventListener("resize", () => {
@@ -262,9 +270,8 @@ function restartHole() {
   viewOffset = 0;
   prevX = ball.x;
   prevY = ball.y;
+  aimAtHole();
 }
-
-let angle = Math.PI / 4; // aiming angle in radians
 
 let power = 10; // selected launch power
 const MAX_POWER = 50; // maximum launch strength shown by meter
@@ -491,6 +498,11 @@ function update() {
       viewOffset = Math.max(0, ball.x - 100);
     }
   }
+
+  if (!ball.moving && wasMoving) {
+    aimAtHole();
+  }
+  wasMoving = ball.moving;
 }
 
 function drawGround() {
@@ -818,6 +830,7 @@ window.addEventListener("keydown", (e) => {
     }
     prevX = ball.x;
     prevY = ball.y;
+    aimAtHole();
     danceFrames = 0;
   }
   if (e.code === "KeyN") {
