@@ -34,6 +34,10 @@ const holeInfoEl = document.getElementById("holeInfo");
 const scoresEl = document.getElementById("scores");
 const powerBar = document.getElementById("powerBar");
 const powerLevel = document.getElementById("powerLevel");
+const messageEl = document.getElementById("message");
+
+const WATER_PENALTY_MSG = "Water hazard! -1 penalty";
+const OOB_PENALTY_MSG = "Out of bounds! -1 penalty";
 
 // Game state
 const TOTAL_HOLES = 18;
@@ -198,6 +202,15 @@ function updateScoreboard() {
       })
       .join("");
   }
+}
+
+function showMessage(msg) {
+  if (!messageEl) return;
+  messageEl.textContent = msg;
+  clearTimeout(showMessage.timeoutId);
+  showMessage.timeoutId = setTimeout(() => {
+    messageEl.textContent = "";
+  }, 2000);
 }
 
 function nextHole() {
@@ -404,6 +417,7 @@ function update() {
             hits++;
             updateCounter();
             hazardPenalty = true;
+            showMessage(WATER_PENALTY_MSG);
             ball.x = o.x - ball.radius - 5;
             if (ball.x < ball.radius) ball.x = ball.radius;
             ball.y = ground - ball.radius;
@@ -420,6 +434,7 @@ function update() {
       hits++;
       updateCounter();
       hazardPenalty = true;
+      showMessage(OOB_PENALTY_MSG);
       // Place ball next to the out of bounds marker but still in bounds
       ball.x = hole.maxDistance - 30;
       ball.y = canvas.height - GROUND_THICKNESS - BALL_RADIUS;
@@ -549,8 +564,20 @@ function drawObstacles() {
 
       ctx.fillStyle = "#2e8b57";
       ctx.beginPath();
-      ctx.arc(o.x - r * 0.6, groundCenter - o.height + r * 0.3, r * 0.8, 0, Math.PI * 2);
-      ctx.arc(o.x + r * 0.6, groundCenter - o.height + r * 0.3, r * 0.8, 0, Math.PI * 2);
+      ctx.arc(
+        o.x - r * 0.6,
+        groundCenter - o.height + r * 0.3,
+        r * 0.8,
+        0,
+        Math.PI * 2,
+      );
+      ctx.arc(
+        o.x + r * 0.6,
+        groundCenter - o.height + r * 0.3,
+        r * 0.8,
+        0,
+        Math.PI * 2,
+      );
       ctx.fill();
 
       ctx.fillStyle = "#3cb371";
