@@ -142,7 +142,7 @@ function setupCourse() {
       avoidGreen,
     ),
   );
-  // Water hazards should appear level with the ground so no depth is needed
+  // Water hazards sit on top of the ground and extend halfway down
   obstacles.push(
     createObstacle(
       "water",
@@ -617,7 +617,7 @@ function drawObstacles() {
         ctx.lineTo(x, groundHeightAt(x));
       }
       for (let x = o.x + o.width; x >= o.x; x -= 2) {
-        ctx.lineTo(x, groundHeightAt(x) - 2);
+        ctx.lineTo(x, groundHeightAt(x) + GROUND_THICKNESS / 2);
       }
       ctx.closePath();
       ctx.fill();
