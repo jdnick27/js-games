@@ -144,14 +144,14 @@ function setupCourse() {
   obstacles.push(hill);
 
 
-  // place water avoiding tee box, green and the hill
+  // place water avoiding tee box, green and other water/bunkers
   const waterWidth = randomRange(80, 120);
   const water = createObstacle(
     "water",
     TEE_BOX_WIDTH,
     courseEnd * 0.7,
     { width: waterWidth },
-    [teeRange, ...avoidGreen, { left: hill.x, right: hill.x + hill.width }],
+    [teeRange, ...avoidGreen],
   );
   if (water) obstacles.push(water);
 
