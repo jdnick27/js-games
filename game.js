@@ -17,6 +17,8 @@ const BALL_RADIUS = 10;
 const TREE_BASE_WIDTH = 20;
 const TREE_BASE_HEIGHT = 60;
 const GROUND_THICKNESS = 20; // thickness of the ground from the bottom of the canvas
+// Rough conversion factor from pixels to yards for distance labels
+const PIXELS_TO_YARDS = 0.3;
 
 const ball = {
   x: 50,
@@ -102,7 +104,8 @@ function setupCourse() {
   // distance the ball can travel past the hole before penalty
   hole.maxOvershoot = randomRange(canvas.width * 0.2, canvas.width * 0.4);
   hole.maxDistance = hole.x + hole.maxOvershoot;
-  hole.distance = Math.round(hole.x - 50);
+  const pixelDist = hole.x - 50;
+  hole.distance = Math.round(pixelDist * PIXELS_TO_YARDS);
   if (hole.distance >= 75 && hole.distance <= 225) {
     hole.par = 3;
   } else if (hole.distance >= 226 && hole.distance <= 420) {

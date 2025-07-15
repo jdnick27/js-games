@@ -18,6 +18,10 @@ determined by its distance from the tee:
 - Par 4: 226–420yd
 - Par 5: 421–699yd
 
+Distances shown in the game are derived from the screen width using an
+approximate conversion of 0.3 yards per pixel so that each hole falls within a
+plausible real-world range.
+
 The overlay at the
 top of the screen shows the current hole number, its par and distance. Your
 strokes for each hole are recorded on the scoreboard shown on the right side of
