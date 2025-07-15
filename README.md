@@ -11,6 +11,9 @@ Avoid trees, water, bunkers and hills along the way. The green around the hole i
 Press **R** to rehit from your previous location. This counts your last stroke and adds a penalty stroke, unless that stroke already incurred a water or out-of-bounds penalty.
 Press **N** to restart the current hole from the tee without changing the layout.
 
+The ball's animation now updates every other frame so its motion looks a bit
+slower without affecting distance.
+
 The game now features 18 holes played in sequence. Each hole's **par** is
 determined by its distance from the tee:
 

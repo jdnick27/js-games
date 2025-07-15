@@ -58,6 +58,8 @@ let golferX = ball.x - 20;
 const DANCE_DURATION = 300; // frames for victory dance (5s)
 let danceFrames = 0;
 let angle = Math.PI / 4; // aiming angle in radians
+const FRAME_INTERVAL = 2; // draw/update every other frame for slower look
+let frameCounter = 0;
 
 function aimAtHole() {
   angle = Math.atan2(ball.y - hole.y, hole.x - ball.x);
@@ -828,6 +830,9 @@ function drawAim() {
 }
 
 function loop() {
+  requestAnimationFrame(loop);
+  frameCounter++;
+  if (frameCounter % FRAME_INTERVAL !== 0) return;
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   update();
   ctx.save();
@@ -839,7 +844,6 @@ function loop() {
   drawBall();
   drawAim();
   ctx.restore();
-  requestAnimationFrame(loop);
 }
 
 window.addEventListener("keydown", (e) => {
