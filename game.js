@@ -632,7 +632,7 @@ function drawObstacles() {
         ctx.lineTo(x, groundHeightAt(x));
       }
       for (let x = o.x + o.width; x >= o.x; x -= 2) {
-        ctx.lineTo(x, groundHeightAt(x) - o.depth);
+        ctx.lineTo(x, groundHeightAt(x) + o.depth);
       }
       ctx.closePath();
       ctx.fill();
