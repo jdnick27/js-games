@@ -10,6 +10,10 @@ Navigate a ball through a procedurally generated maze. Each of the five levels i
 
 Time your swing to hit the pitched ball. Press the Space key when the ball crosses the plate.
 
+## Stick Figure Fighting
+
+Fight against an AI-controlled opponent. Use the left and right arrow keys to move, the up arrow to jump, Z to attack and X to block. Each fighter has 100 health and attacks deal around 20 damage so about five hits will win the match.
+
 ## Playing
 
 Open `index.html` in a web browser to access the home menu. Choose **Start Game** to play or read **About Game/Rules** for instructions. The game canvas will scale to your browser window. Use the left and right arrow keys to adjust the shot angle. The controls are inverted so the left arrow rotates the aim right and the right arrow rotates it left.
