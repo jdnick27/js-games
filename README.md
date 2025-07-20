@@ -6,6 +6,10 @@ A simple browser golf game. Aim the ball and launch it toward the hole on a flat
 
 Navigate a ball through a procedurally generated maze. Each of the five levels increases in size and features its own color scheme. Reach the exit to advance to the next level and escape the final maze to win.
 
+## Baseball
+
+Face a series of pitches and press the Space key to swing the bat as the ball enters the strike zone. The overlay tracks how many hits and misses you get.
+
 ## Playing
 
 Open `index.html` in a web browser to access the home menu. Choose **Start Game** to play or read **About Game/Rules** for instructions. The game canvas will scale to your browser window. Use the left and right arrow keys to adjust the shot angle. The controls are inverted so the left arrow rotates the aim right and the right arrow rotates it left.
