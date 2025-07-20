@@ -167,6 +167,22 @@ body {
   background: var(--link-hover-bg);
 }
 
+/* link to about page on home screen */
+#aboutButton {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  padding: 5px 10px;
+  background: var(--overlay-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
+  text-decoration: none;
+  color: var(--text-color);
+}
+#aboutButton:hover {
+  background: var(--link-hover-bg);
+}
+
 #themeToggle {
   padding: 10px 20px;
   background: var(--overlay-bg);
