@@ -159,7 +159,8 @@ body {
 }
 
 /* link back to home page on game screen */
-#homeLink {
+#homeLink,
+#aboutLink {
   position: absolute;
   top: 10px;
   left: 10px;
@@ -170,7 +171,11 @@ body {
   text-decoration: none;
   color: var(--text-color);
 }
-#homeLink:hover {
+#aboutLink {
+  left: 110px;
+}
+#homeLink:hover,
+#aboutLink:hover {
   background: var(--link-hover-bg);
 }
 
