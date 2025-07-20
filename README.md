@@ -17,6 +17,12 @@ up arrow to jump, press **A** to attack and hold **S** to block. Each fighter ca
 take about five hits before being defeated. The enemy now reacts to your attacks
 and strikes more aggressively.
 
+## Archery Darts
+
+Move the crosshair with the arrow keys and press **Space** to shoot an arrow at the
+dartboard. You get three shots to rack up the highest score. After your last shot,
+press **R** to play again.
+
 ## Playing
 
 Open `index.html` in a web browser to access the home menu. Choose **Start Game** to play or read **About Game/Rules** for instructions. The game canvas will scale to your browser window. Use the left and right arrow keys to adjust the shot angle. The controls are inverted so the left arrow rotates the aim right and the right arrow rotates it left.
