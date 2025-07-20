@@ -32,7 +32,7 @@ beforeEach(() => {
     translate: jest.fn(),
     closePath: jest.fn(),
   });
-  game = require("./game.js");
+  game = require("./games/golf/game.js");
 });
 
 test("randomRange uses bounds", () => {

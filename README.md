@@ -60,5 +60,11 @@ npx prettier -w *.js *.html *.css README.md
 Check the main script for common mistakes:
 
 ```bash
-npx jshint game.js
+npx jshint games/golf/game.js
+```
+
+Delete local branches whose remote counterparts were removed:
+
+```bash
+./cleanupBranches.sh
 ```
