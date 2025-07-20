@@ -10,7 +10,8 @@ const MOVE_SPEED = 4;
 const JUMP_SPEED = -10;
 const ATTACK_FRAMES = 10;
 // How often the enemy AI evaluates its next action (ms)
-const AI_INTERVAL = 300;
+const AI_INTERVAL = 200;
+const AGGRO_RANGE = 40;
 
 function resize() {
   width = canvas.width = window.innerWidth;
@@ -170,7 +171,7 @@ function aiAct() {
     return;
   }
 
-  if (Math.abs(dist) > 60) {
+  if (Math.abs(dist) > AGGRO_RANGE) {
     enemy.vx = dist > 0 ? MOVE_SPEED : -MOVE_SPEED;
     if (Math.random() < 0.2 && enemy.y === groundY) {
       enemy.vy = JUMP_SPEED;
