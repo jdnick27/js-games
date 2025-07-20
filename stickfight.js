@@ -37,7 +37,6 @@ function reset() {
   resize();
   player = createFighter(100, "#333");
   enemy = createFighter(width - 100, "#a00");
-  updateHealth();
   messageEl.textContent = "";
 }
 
@@ -46,6 +45,16 @@ function drawFighter(f) {
   const legLen = 20;
   const bodyLen = 30;
   const headY = f.y - legLen - bodyLen - headR;
+  const barWidth = 40;
+  const barHeight = 6;
+  const barX = f.x - barWidth / 2;
+  const barY = headY - headR - 10;
+  ctx.fillStyle = "#ccc";
+  ctx.fillRect(barX, barY, barWidth, barHeight);
+  ctx.fillStyle = f === player ? "#0f0" : "#f00";
+  ctx.fillRect(barX, barY, (Math.max(0, f.health) / 5) * barWidth, barHeight);
+  ctx.strokeStyle = "#000";
+  ctx.strokeRect(barX, barY, barWidth, barHeight);
   ctx.strokeStyle = f.color;
   ctx.lineWidth = 2;
 
@@ -93,14 +102,7 @@ function updateFighter(f) {
 }
 
 const keys = {};
-const healthEl = document.getElementById("health");
 const messageEl = document.getElementById("message");
-
-function updateHealth() {
-  if (healthEl) {
-    healthEl.textContent = `Player: ${player.health.toFixed(1)} \u2013 Enemy: ${enemy.health.toFixed(1)}`;
-  }
-}
 
 document.addEventListener("keydown", (e) => {
   keys[e.code] = true;
@@ -141,7 +143,6 @@ function checkAttacks() {
   ) {
     enemy.health -= 0.8 + Math.random() * 0.4;
     enemy.hitCooldown = 20;
-    updateHealth();
   }
   if (
     enemy.attacking > 0 &&
@@ -151,7 +152,6 @@ function checkAttacks() {
   ) {
     player.health -= 0.8 + Math.random() * 0.4;
     player.hitCooldown = 20;
-    updateHealth();
   }
 }
 
