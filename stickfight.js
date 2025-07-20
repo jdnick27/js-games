@@ -9,6 +9,7 @@ const GRAVITY = 0.5;
 const MOVE_SPEED = 4;
 const JUMP_SPEED = -10;
 const ATTACK_FRAMES = 10;
+const MAX_HEALTH = 5;
 
 function resize() {
   width = canvas.width = window.innerWidth;
@@ -23,7 +24,7 @@ function createFighter(x, color) {
     vx: 0,
     vy: 0,
     color,
-    health: 5,
+    health: MAX_HEALTH,
     attacking: 0,
     blocking: false,
     hitCooldown: 0,
@@ -37,7 +38,6 @@ function reset() {
   resize();
   player = createFighter(100, "#333");
   enemy = createFighter(width - 100, "#a00");
-  updateHealth();
   messageEl.textContent = "";
 }
 
@@ -46,6 +46,17 @@ function drawFighter(f) {
   const legLen = 20;
   const bodyLen = 30;
   const headY = f.y - legLen - bodyLen - headR;
+  const barWidth = 40;
+  const barHeight = 5;
+  const barX = f.x - barWidth / 2;
+  const barY = headY - 15;
+  ctx.fillStyle = "#555";
+  ctx.fillRect(barX, barY, barWidth, barHeight);
+  ctx.fillStyle = "#2ecc71";
+  const ratio = Math.max(f.health, 0) / MAX_HEALTH;
+  ctx.fillRect(barX, barY, barWidth * ratio, barHeight);
+  ctx.strokeStyle = "#000";
+  ctx.strokeRect(barX, barY, barWidth, barHeight);
   ctx.strokeStyle = f.color;
   ctx.lineWidth = 2;
 
@@ -93,14 +104,7 @@ function updateFighter(f) {
 }
 
 const keys = {};
-const healthEl = document.getElementById("health");
 const messageEl = document.getElementById("message");
-
-function updateHealth() {
-  if (healthEl) {
-    healthEl.textContent = `Player: ${player.health.toFixed(1)} \u2013 Enemy: ${enemy.health.toFixed(1)}`;
-  }
-}
 
 document.addEventListener("keydown", (e) => {
   keys[e.code] = true;
@@ -141,7 +145,6 @@ function checkAttacks() {
   ) {
     enemy.health -= 0.8 + Math.random() * 0.4;
     enemy.hitCooldown = 20;
-    updateHealth();
   }
   if (
     enemy.attacking > 0 &&
@@ -151,7 +154,6 @@ function checkAttacks() {
   ) {
     player.health -= 0.8 + Math.random() * 0.4;
     player.hitCooldown = 20;
-    updateHealth();
   }
 }
 
