@@ -32,6 +32,11 @@ the screen along with how many strokes over or under par you were. When the
 ball drops into the cup the hole is complete and the next hole will
 automatically load until all 18 are finished.
 
+## The Maze
+
+Navigate a ball through a randomly generated maze. Each level features a new
+color scheme and larger layout. Reach the exit on level five to win.
+
 ## Development
 
 Run `npm install` to install development dependencies. The project uses [Prettier](https://prettier.io/) for formatting and `jshint` for basic linting.

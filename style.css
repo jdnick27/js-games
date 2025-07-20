@@ -36,7 +36,23 @@ body {
   height: 100vh;
 }
 
+#mazeCanvas {
+  background: var(--game-bg);
+  display: block;
+  width: 100vw;
+  height: 100vh;
+}
+
 #overlay {
+  position: absolute;
+  top: 10px;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  pointer-events: none;
+}
+
+#mazeOverlay {
   position: absolute;
   top: 10px;
   left: 0;
