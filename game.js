@@ -218,7 +218,7 @@ function updateScoreboard() {
         const par = pars[i];
         const diff = s - par;
         const diffStr = diff === 0 ? "E" : diff > 0 ? `+${diff}` : diff;
-        return `<li>Hole ${i + 1}: ${s} (${diffStr})</li>`;
+        return `<li>Hole ${i + 1} - Par ${par}: ${s} (${diffStr})</li>`;
       })
       .join("");
   }
