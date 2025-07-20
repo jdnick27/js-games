@@ -10,6 +10,10 @@ Navigate a ball through a procedurally generated maze. Each of the five levels i
 
 Time your swing to hit the pitched ball. Press the Space key when the ball crosses the plate.
 
+## Archery Darts
+
+Click and drag to launch an arrow toward a dartboard-style target. Scores are awarded based on which ring you hit.
+
 ## Stick Figure Fighting
 
 Face off against an improved AI opponent. Use the left and right arrow keys to move, the
