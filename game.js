@@ -34,6 +34,7 @@ const ball = {
 const counterEl = document.getElementById("counter");
 const holeInfoEl = document.getElementById("holeInfo");
 const scoresEl = document.getElementById("scores");
+const totalScoreEl = document.getElementById("totalScore");
 const powerBar = document.getElementById("powerBar");
 const powerLevel = document.getElementById("powerLevel");
 const messageEl = document.getElementById("message");
@@ -220,6 +221,12 @@ function updateScoreboard() {
         return `<li>Hole ${i + 1}: ${s} (${diffStr})</li>`;
       })
       .join("");
+  }
+  if (totalScoreEl) {
+    const totalDiff = scores.reduce((acc, s, i) => acc + (s - pars[i]), 0);
+    const diffStr =
+      totalDiff === 0 ? "E" : totalDiff > 0 ? `+${totalDiff}` : totalDiff;
+    totalScoreEl.textContent = `Total: ${diffStr}`;
   }
 }
 
