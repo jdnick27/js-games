@@ -50,6 +50,13 @@ body {
   height: 100vh;
 }
 
+#stickfight {
+  background: var(--game-bg);
+  display: block;
+  width: 100vw;
+  height: 100vh;
+}
+
 #overlay {
   position: absolute;
   top: 10px;
