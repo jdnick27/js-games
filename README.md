@@ -12,9 +12,10 @@ Time your swing to hit the pitched ball. Press the Space key when the ball cross
 
 ## Stick Figure Fighting
 
-Face off against an AI opponent. Use the left and right arrow keys to move, the
+Face off against an improved AI opponent. Use the left and right arrow keys to move, the
 up arrow to jump, press **A** to attack and hold **S** to block. Each fighter can
-take about five hits before being defeated.
+take about five hits before being defeated. The enemy now reacts to your attacks
+and strikes more aggressively.
 
 ## Playing
 

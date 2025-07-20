@@ -9,6 +9,8 @@ const GRAVITY = 0.5;
 const MOVE_SPEED = 4;
 const JUMP_SPEED = -10;
 const ATTACK_FRAMES = 10;
+// How often the enemy AI evaluates its next action (ms)
+const AI_INTERVAL = 300;
 
 function resize() {
   width = canvas.width = window.innerWidth;
@@ -157,18 +159,27 @@ function checkAttacks() {
 
 function aiAct() {
   if (enemy.health <= 0 || player.health <= 0) return;
+
   const dist = player.x - enemy.x;
   enemy.blocking = false;
+  const close = Math.abs(dist) < 50;
+
+  // React to player attacks when nearby
+  if (player.attacking > 0 && close && Math.random() < 0.8) {
+    enemy.blocking = true;
+    return;
+  }
+
   if (Math.abs(dist) > 60) {
-    enemy.vx = dist > 0 ? MOVE_SPEED / 2 : -MOVE_SPEED / 2;
-    if (Math.random() < 0.1 && enemy.y === groundY) {
+    enemy.vx = dist > 0 ? MOVE_SPEED : -MOVE_SPEED;
+    if (Math.random() < 0.2 && enemy.y === groundY) {
       enemy.vy = JUMP_SPEED;
     }
   } else {
     const r = Math.random();
-    if (r < 0.5 && enemy.attacking === 0) {
+    if (enemy.attacking === 0 && r < 0.7) {
       enemy.attacking = ATTACK_FRAMES;
-    } else if (r < 0.8) {
+    } else if (r < 0.9) {
       enemy.blocking = true;
     } else if (enemy.y === groundY) {
       enemy.vy = JUMP_SPEED;
@@ -205,5 +216,5 @@ function loop() {
 
 window.addEventListener("resize", reset);
 reset();
-setInterval(aiAct, 500);
+setInterval(aiAct, AI_INTERVAL);
 loop();
