@@ -3,23 +3,25 @@ const ctx = canvas.getContext("2d");
 
 const LEVELS = [
   {
-    size: 8,
+    size: 20,
     colors: { bg: "#f8f8ff", wall: "#333", player: "#e74c3c", exit: "#2ecc71" },
   },
   {
-    size: 10,
+    size: 25,
     colors: { bg: "#fff0f5", wall: "#222", player: "#3498db", exit: "#27ae60" },
   },
   {
-    size: 12,
+    size: 30,
     colors: { bg: "#f0fff0", wall: "#111", player: "#9b59b6", exit: "#16a085" },
   },
   {
-    size: 14,
+    size: 35,
+    fog: true,
     colors: { bg: "#f5fffa", wall: "#000", player: "#f1c40f", exit: "#2980b9" },
   },
   {
-    size: 16,
+    size: 40,
+    fog: true,
     colors: { bg: "#fffff0", wall: "#444", player: "#e67e22", exit: "#8e44ad" },
   },
 ];
@@ -28,6 +30,7 @@ const CELL_SIZE = 40;
 let level = 0;
 let maze;
 let player;
+let visited;
 
 function resize() {
   canvas.width = LEVELS[level].size * CELL_SIZE;
@@ -104,6 +107,26 @@ function generateMaze(size) {
   return grid;
 }
 
+function addLoops(grid, probability) {
+  const size = grid.length;
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      if (Math.random() < probability) {
+        const neighbors = [];
+        if (x > 0) neighbors.push(grid[y][x - 1]);
+        if (x < size - 1) neighbors.push(grid[y][x + 1]);
+        if (y > 0) neighbors.push(grid[y - 1][x]);
+        if (y < size - 1) neighbors.push(grid[y + 1][x]);
+        if (neighbors.length > 0) {
+          const neighbor =
+            neighbors[Math.floor(Math.random() * neighbors.length)];
+          removeWalls(grid[y][x], neighbor);
+        }
+      }
+    }
+  }
+}
+
 function drawMaze() {
   const { bg, wall, player: playerColor, exit } = LEVELS[level].colors;
   ctx.fillStyle = bg;
@@ -116,41 +139,49 @@ function drawMaze() {
       const cell = maze[y][x];
       const sx = x * CELL_SIZE;
       const sy = y * CELL_SIZE;
-      if (cell.walls.top) {
-        ctx.beginPath();
-        ctx.moveTo(sx, sy);
-        ctx.lineTo(sx + CELL_SIZE, sy);
-        ctx.stroke();
-      }
-      if (cell.walls.right) {
-        ctx.beginPath();
-        ctx.moveTo(sx + CELL_SIZE, sy);
-        ctx.lineTo(sx + CELL_SIZE, sy + CELL_SIZE);
-        ctx.stroke();
-      }
-      if (cell.walls.bottom) {
-        ctx.beginPath();
-        ctx.moveTo(sx, sy + CELL_SIZE);
-        ctx.lineTo(sx + CELL_SIZE, sy + CELL_SIZE);
-        ctx.stroke();
-      }
-      if (cell.walls.left) {
-        ctx.beginPath();
-        ctx.moveTo(sx, sy);
-        ctx.lineTo(sx, sy + CELL_SIZE);
-        ctx.stroke();
+      const show = !LEVELS[level].fog || visited[y][x];
+      if (show) {
+        if (cell.walls.top) {
+          ctx.beginPath();
+          ctx.moveTo(sx, sy);
+          ctx.lineTo(sx + CELL_SIZE, sy);
+          ctx.stroke();
+        }
+        if (cell.walls.right) {
+          ctx.beginPath();
+          ctx.moveTo(sx + CELL_SIZE, sy);
+          ctx.lineTo(sx + CELL_SIZE, sy + CELL_SIZE);
+          ctx.stroke();
+        }
+        if (cell.walls.bottom) {
+          ctx.beginPath();
+          ctx.moveTo(sx, sy + CELL_SIZE);
+          ctx.lineTo(sx + CELL_SIZE, sy + CELL_SIZE);
+          ctx.stroke();
+        }
+        if (cell.walls.left) {
+          ctx.beginPath();
+          ctx.moveTo(sx, sy);
+          ctx.lineTo(sx, sy + CELL_SIZE);
+          ctx.stroke();
+        }
+      } else {
+        ctx.fillStyle = "#000";
+        ctx.fillRect(sx, sy, CELL_SIZE, CELL_SIZE);
       }
     }
   }
 
   // draw exit
-  ctx.fillStyle = exit;
-  ctx.fillRect(
-    (maze.length - 1) * CELL_SIZE + CELL_SIZE / 4,
-    (maze.length - 1) * CELL_SIZE + CELL_SIZE / 4,
-    CELL_SIZE / 2,
-    CELL_SIZE / 2,
-  );
+  if (!LEVELS[level].fog || visited[maze.length - 1][maze.length - 1]) {
+    ctx.fillStyle = exit;
+    ctx.fillRect(
+      (maze.length - 1) * CELL_SIZE + CELL_SIZE / 4,
+      (maze.length - 1) * CELL_SIZE + CELL_SIZE / 4,
+      CELL_SIZE / 2,
+      CELL_SIZE / 2,
+    );
+  }
 
   // draw player
   ctx.fillStyle = playerColor;
@@ -171,6 +202,11 @@ function startLevel() {
   document.getElementById("winMsg").textContent = "";
   resize();
   maze = generateMaze(LEVELS[level].size);
+  addLoops(maze, 0.3);
+  visited = Array.from({ length: LEVELS[level].size }, () =>
+    Array(LEVELS[level].size).fill(false),
+  );
+  visited[0][0] = true;
   player = { x: 0, y: 0 };
   drawMaze();
 }
@@ -181,6 +217,7 @@ function move(dx, dy) {
   if (dx === 1 && !cell.walls.right) player.x += 1;
   if (dy === -1 && !cell.walls.top) player.y -= 1;
   if (dy === 1 && !cell.walls.bottom) player.y += 1;
+  visited[player.y][player.x] = true;
   drawMaze();
   if (player.x === maze.length - 1 && player.y === maze.length - 1) {
     level++;
