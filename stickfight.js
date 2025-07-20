@@ -9,6 +9,7 @@ const GRAVITY = 0.5;
 const MOVE_SPEED = 4;
 const JUMP_SPEED = -10;
 const ATTACK_FRAMES = 10;
+const MAX_HEALTH = 5;
 
 function resize() {
   width = canvas.width = window.innerWidth;
@@ -23,7 +24,7 @@ function createFighter(x, color) {
     vx: 0,
     vy: 0,
     color,
-    health: 5,
+    health: MAX_HEALTH,
     attacking: 0,
     blocking: false,
     hitCooldown: 0,
@@ -62,6 +63,22 @@ function drawFighter(f) {
   ctx.moveTo(f.x, f.y - legLen);
   ctx.lineTo(f.x + 10, f.y);
   ctx.stroke();
+
+  // draw health bar
+  const barWidth = 40;
+  const barHeight = 5;
+  const barX = f.x - barWidth / 2;
+  const barY = headY - 15;
+  ctx.fillStyle = "#e74c3c";
+  ctx.strokeStyle = "#000";
+  ctx.strokeRect(barX, barY, barWidth, barHeight);
+  ctx.fillRect(
+    barX,
+    barY,
+    (Math.max(f.health, 0) / MAX_HEALTH) * barWidth,
+    barHeight,
+  );
+  ctx.strokeStyle = f.color;
 
   if (f.blocking) {
     ctx.strokeRect(f.x - 15, f.y - legLen - 15, 30, 30);
