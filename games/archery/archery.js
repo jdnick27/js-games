@@ -6,7 +6,7 @@ let height;
 let groundY;
 
 const GRAVITY = 0.25;
-const POWER = 15;
+const POWER = 20;
 
 let angle = Math.PI / 4; // aiming angle
 let arrow;
