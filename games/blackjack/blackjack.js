@@ -8,6 +8,23 @@ function resize() {
 const STARTING_CHIPS = 500;
 const MAX_BET = 25;
 
+const SUITS = ["♠", "♥", "♦", "♣"];
+const RANKS = [
+  { name: "A", value: 11 },
+  { name: "2", value: 2 },
+  { name: "3", value: 3 },
+  { name: "4", value: 4 },
+  { name: "5", value: 5 },
+  { name: "6", value: 6 },
+  { name: "7", value: 7 },
+  { name: "8", value: 8 },
+  { name: "9", value: 9 },
+  { name: "10", value: 10 },
+  { name: "J", value: 10 },
+  { name: "Q", value: 10 },
+  { name: "K", value: 10 },
+];
+
 let chips = STARTING_CHIPS;
 let deck = [];
 let dealer = [];
@@ -19,10 +36,11 @@ let message = "";
 
 function createDeck() {
   deck = [];
-  const values = [2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 11];
-  for (let i = 0; i < 4; i++) {
-    deck.push(...values);
-  }
+  SUITS.forEach((suit) => {
+    RANKS.forEach((rank) => {
+      deck.push({ suit, name: rank.name, value: rank.value });
+    });
+  });
 }
 
 function shuffle() {
@@ -37,8 +55,8 @@ function dealCard(hand) {
 }
 
 function handValue(hand) {
-  let total = hand.reduce((a, b) => a + b, 0);
-  let aces = hand.filter((v) => v === 11).length;
+  let total = hand.reduce((a, c) => a + c.value, 0);
+  let aces = hand.filter((c) => c.value === 11).length;
   while (total > 21 && aces > 0) {
     total -= 10;
     aces--;
@@ -46,24 +64,58 @@ function handValue(hand) {
   return total;
 }
 
+function createCardElement(card, hidden) {
+  const div = document.createElement("div");
+  div.className = "card";
+  if (hidden) {
+    div.classList.add("back");
+    div.textContent = "?";
+    return div;
+  }
+  if (card.suit === "♥" || card.suit === "♦") {
+    div.classList.add("red");
+  }
+  div.textContent = `${card.name}${card.suit}`;
+  return div;
+}
+
 function updateDisplay() {
   document.getElementById("chips").textContent = `Chips: $${chips}`;
   const betText = bets.length ? `Bet: $${bets[currentHand]}` : "";
   document.getElementById("betDisplay").textContent = betText;
-  const dealerText = inRound
-    ? `${dealer[0]}, ?`
-    : `${dealer.join(", ")} (${handValue(dealer)})`;
-  document.getElementById("dealerHand").textContent = `Dealer: ${dealerText}`;
-  const playerText = playerHands
-    .map((hand, idx) => {
-      const prefix =
-        playerHands.length > 1
-          ? `Hand ${idx + 1}${inRound && idx === currentHand ? "*" : ""}`
-          : "Player";
-      return `${prefix}: ${hand.join(", ")} (${handValue(hand)})`;
-    })
-    .join(" | ");
-  document.getElementById("playerHand").textContent = playerText;
+
+  const dealerDiv = document.getElementById("dealerHand");
+  dealerDiv.innerHTML = "Dealer: ";
+  dealer.forEach((card, idx) => {
+    const hidden = inRound && idx === 1;
+    dealerDiv.appendChild(createCardElement(card, hidden));
+  });
+  if (!inRound) {
+    const total = document.createElement("span");
+    total.textContent = ` (${handValue(dealer)})`;
+    dealerDiv.appendChild(total);
+  }
+
+  const playersContainer = document.getElementById("playerHands");
+  playersContainer.innerHTML = "";
+  playerHands.forEach((hand, idx) => {
+    const handDiv = document.createElement("div");
+    handDiv.className = "hand";
+    const prefix =
+      playerHands.length > 1
+        ? `Hand ${idx + 1}${inRound && idx === currentHand ? "*" : ""}: `
+        : "Player: ";
+    const label = document.createElement("span");
+    label.textContent = prefix;
+    handDiv.appendChild(label);
+    hand.forEach((card) => {
+      handDiv.appendChild(createCardElement(card));
+    });
+    const total = document.createElement("span");
+    total.textContent = ` (${handValue(hand)})`;
+    handDiv.appendChild(total);
+    playersContainer.appendChild(handDiv);
+  });
   document.getElementById("message").textContent = message;
 }
 
@@ -135,7 +187,7 @@ function splitHand() {
     playerHands.length > 1 ||
     chips < bets[0] ||
     playerHands[0].length !== 2 ||
-    handValue([playerHands[0][0]]) !== handValue([playerHands[0][1]])
+    playerHands[0][0].value !== playerHands[0][1].value
   )
     return;
   chips -= bets[0];
@@ -200,6 +252,12 @@ document.addEventListener("keydown", (e) => {
   if (key === "p") splitHand();
   if (key === "x") doubleDown();
 });
+
+document.getElementById("dealBtn").addEventListener("click", startRound);
+document.getElementById("hitBtn").addEventListener("click", hit);
+document.getElementById("standBtn").addEventListener("click", stand);
+document.getElementById("doubleBtn").addEventListener("click", doubleDown);
+document.getElementById("splitBtn").addEventListener("click", splitHand);
 
 window.addEventListener("resize", resize);
 resize();

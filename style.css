@@ -210,3 +210,38 @@ body {
 #themeToggle:hover {
   background: var(--link-hover-bg);
 }
+/* blackjack card and control styles */
+.hand {
+  display: inline-block;
+  margin: 5px;
+}
+.card {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 40px;
+  height: 60px;
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
+  background: #fff;
+  margin: 2px;
+  font-weight: bold;
+}
+[data-theme="dark"] .card {
+  background: #222;
+}
+.card.red {
+  color: red;
+}
+.card.back {
+  background: var(--border-color);
+  color: transparent;
+}
+#controls {
+  pointer-events: auto;
+  margin-top: 10px;
+}
+#controls button {
+  margin: 0 5px;
+  padding: 5px 10px;
+}
