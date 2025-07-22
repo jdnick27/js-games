@@ -64,6 +64,13 @@ body {
   height: 100vh;
 }
 
+#wheel {
+  background: var(--game-bg);
+  display: block;
+  width: 100vw;
+  height: 100vh;
+}
+
 #overlay {
   position: absolute;
   top: 10px;
@@ -244,4 +251,36 @@ body {
 #controls button {
   margin: 0 5px;
   padding: 5px 10px;
+}
+
+#rouletteTable {
+  display: grid;
+  grid-template-columns: repeat(3, 60px);
+  width: max-content;
+  margin: 10px auto;
+  pointer-events: auto;
+}
+
+.roulette-cell {
+  width: 60px;
+  height: 40px;
+  border: 1px solid var(--border-color);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+  color: #fff;
+}
+
+.roulette-cell.red {
+  background: red;
+}
+
+.roulette-cell.black {
+  background: black;
+}
+
+.roulette-cell.green {
+  background: green;
 }

@@ -29,6 +29,11 @@ Play a hand of blackjack against the dealer. Press **D** to deal,
 **H** to hit, **S** to stand, **P** to split pairs and **X** to double down.
 You start with $500 in chips and may bet up to $25 per round.
 
+## Roulette
+
+Place chips on the betting table and spin the wheel. Left click a number to add
+a chip and right click to remove one before spinning. A correct bet pays 35:1.
+
 ## Playing
 
 Open `index.html` in a web browser to access the home menu. Choose **Start Game** to play or read **About Game/Rules** for instructions. The game canvas will scale to your browser window. Use the left and right arrow keys to adjust the shot angle. The controls are inverted so the left arrow rotates the aim right and the right arrow rotates it left.

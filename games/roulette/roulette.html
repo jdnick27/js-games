@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Roulette</title>
+    <link rel="stylesheet" href="../../style.css" />
+  </head>
+  <body>
+    <div id="gameMenu">
+      <a id="homeLink" href="../../index.html">Back to Home</a>
+      <a id="aboutLink" href="about.html">About Game</a>
+    </div>
+    <div id="overlay">
+      <h1>Roulette</h1>
+      <p>
+        Click numbers to place chips. Right-click a number to remove a chip
+        before spinning.
+      </p>
+      <p id="chips"></p>
+      <p id="message"></p>
+      <div id="controls">
+        <button id="spinBtn">Spin</button>
+        <button id="clearBtn">Clear Bets</button>
+      </div>
+      <div id="rouletteTable"></div>
+    </div>
+    <canvas id="wheel"></canvas>
+    <script src="roulette.js"></script>
+    <script src="../../theme.js"></script>
+    <script src="../../menu.js"></script>
+  </body>
+</html>
