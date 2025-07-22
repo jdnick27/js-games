@@ -25,9 +25,9 @@ to the center your arrow sticks.
 
 ## Black Jack
 
-Play a hand of blackjack against the dealer. Press **D** to deal, **H** to hit
-and **S** to stand. You start with $500 in chips and may bet up to $25 per
-round.
+Play a hand of blackjack against the dealer. Press **D** to deal,
+**H** to hit, **S** to stand, **P** to split pairs and **X** to double down.
+You start with $500 in chips and may bet up to $25 per round.
 
 ## Playing
 
