@@ -15,13 +15,20 @@
       <h1>Black Jack</h1>
       <p>
         Press D to deal, H to hit, S to stand, P to split pairs and X to double
-        down. Max bet $25.
+        down. You can also use the buttons below. Max bet $25.
       </p>
       <p id="chips"></p>
       <p id="betDisplay"></p>
-      <p id="dealerHand"></p>
-      <p id="playerHand"></p>
+      <div id="dealerHand" class="hand"></div>
+      <div id="playerHands"></div>
       <p id="message"></p>
+      <div id="controls">
+        <button id="dealBtn">Deal</button>
+        <button id="hitBtn">Hit</button>
+        <button id="standBtn">Stand</button>
+        <button id="doubleBtn">Double</button>
+        <button id="splitBtn">Split</button>
+      </div>
     </div>
     <canvas id="blackjack"></canvas>
     <script src="blackjack.js"></script>
