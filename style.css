@@ -158,25 +158,38 @@ body {
   background: var(--link-hover-bg);
 }
 
-/* link back to home page on game screen */
+/* links inside escape menu */
 #homeLink,
 #aboutLink {
-  position: absolute;
-  top: 10px;
-  left: 10px;
+  display: block;
+  margin: 10px 0;
   padding: 5px 10px;
   background: var(--overlay-bg);
   border: 1px solid var(--border-color);
   border-radius: 5px;
   text-decoration: none;
   color: var(--text-color);
-}
-#aboutLink {
-  left: 110px;
+  width: max-content;
+  margin-left: auto;
+  margin-right: auto;
 }
 #homeLink:hover,
 #aboutLink:hover {
   background: var(--link-hover-bg);
+}
+
+/* escape key menu container */
+#gameMenu {
+  display: none;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--overlay-bg);
+  border: 1px solid var(--border-color);
+  padding: 20px;
+  text-align: center;
+  z-index: 1000;
 }
 
 #themeToggle {
