@@ -23,6 +23,12 @@ Shoot arrows at a dartboard. Use the left and right arrow keys to adjust your
 aim then press the **Space** key to fire. Points are awarded based on how close
 to the center your arrow sticks.
 
+## Black Jack
+
+Play a hand of blackjack against the dealer. Press **D** to deal, **H** to hit
+and **S** to stand. You start with $500 in chips and may bet up to $25 per
+round.
+
 ## Playing
 
 Open `index.html` in a web browser to access the home menu. Choose **Start Game** to play or read **About Game/Rules** for instructions. The game canvas will scale to your browser window. Use the left and right arrow keys to adjust the shot angle. The controls are inverted so the left arrow rotates the aim right and the right arrow rotates it left.
