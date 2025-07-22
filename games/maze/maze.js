@@ -31,6 +31,7 @@ let level = 0;
 let maze;
 let player;
 let visited;
+let exit;
 
 function resize() {
   canvas.width = LEVELS[level].size * CELL_SIZE;
@@ -128,7 +129,12 @@ function addLoops(grid, probability) {
 }
 
 function drawMaze() {
-  const { bg, wall, player: playerColor, exit } = LEVELS[level].colors;
+  const {
+    bg,
+    wall,
+    player: playerColor,
+    exit: exitColor,
+  } = LEVELS[level].colors;
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.strokeStyle = wall;
@@ -173,11 +179,11 @@ function drawMaze() {
   }
 
   // draw exit
-  if (!LEVELS[level].fog || visited[maze.length - 1][maze.length - 1]) {
-    ctx.fillStyle = exit;
+  if (!LEVELS[level].fog || visited[exit.y][exit.x]) {
+    ctx.fillStyle = exitColor;
     ctx.fillRect(
-      (maze.length - 1) * CELL_SIZE + CELL_SIZE / 4,
-      (maze.length - 1) * CELL_SIZE + CELL_SIZE / 4,
+      exit.x * CELL_SIZE + CELL_SIZE / 4,
+      exit.y * CELL_SIZE + CELL_SIZE / 4,
       CELL_SIZE / 2,
       CELL_SIZE / 2,
     );
@@ -208,6 +214,16 @@ function startLevel() {
   );
   visited[0][0] = true;
   player = { x: 0, y: 0 };
+  const size = LEVELS[level].size;
+  if (level === 4) {
+    const min = Math.floor(size * 0.6);
+    exit = {
+      x: min + Math.floor(Math.random() * (size - min)),
+      y: min + Math.floor(Math.random() * (size - min)),
+    };
+  } else {
+    exit = { x: size - 1, y: size - 1 };
+  }
   drawMaze();
 }
 
@@ -219,7 +235,7 @@ function move(dx, dy) {
   if (dy === 1 && !cell.walls.bottom) player.y += 1;
   visited[player.y][player.x] = true;
   drawMaze();
-  if (player.x === maze.length - 1 && player.y === maze.length - 1) {
+  if (player.x === exit.x && player.y === exit.y) {
     level++;
     if (level >= LEVELS.length) {
       document.getElementById("winMsg").textContent = "You escaped the maze!";
