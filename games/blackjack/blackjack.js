@@ -9,10 +9,11 @@ const STARTING_CHIPS = 500;
 const MAX_BET = 25;
 
 let chips = STARTING_CHIPS;
-let bet = 0;
 let deck = [];
-let player = [];
 let dealer = [];
+let playerHands = [];
+let bets = [];
+let currentHand = 0;
 let inRound = false;
 let message = "";
 
@@ -47,15 +48,22 @@ function handValue(hand) {
 
 function updateDisplay() {
   document.getElementById("chips").textContent = `Chips: $${chips}`;
-  document.getElementById("betDisplay").textContent = bet
-    ? `Bet: $${bet}`
-    : "";
+  const betText = bets.length ? `Bet: $${bets[currentHand]}` : "";
+  document.getElementById("betDisplay").textContent = betText;
   const dealerText = inRound
     ? `${dealer[0]}, ?`
     : `${dealer.join(", ")} (${handValue(dealer)})`;
   document.getElementById("dealerHand").textContent = `Dealer: ${dealerText}`;
-  document.getElementById("playerHand").textContent =
-    `Player: ${player.join(", ")} (${handValue(player)})`;
+  const playerText = playerHands
+    .map((hand, idx) => {
+      const prefix =
+        playerHands.length > 1
+          ? `Hand ${idx + 1}${inRound && idx === currentHand ? "*" : ""}`
+          : "Player";
+      return `${prefix}: ${hand.join(", ")} (${handValue(hand)})`;
+    })
+    .join(" | ");
+  document.getElementById("playerHand").textContent = playerText;
   document.getElementById("message").textContent = message;
 }
 
@@ -63,32 +71,80 @@ function startRound() {
   if (inRound || chips <= 0) {
     return;
   }
-  bet = Math.min(MAX_BET, chips);
+  const bet = Math.min(MAX_BET, chips);
   chips -= bet;
   createDeck();
   shuffle();
-  player = [];
   dealer = [];
-  dealCard(player);
+  playerHands = [[]];
+  bets = [bet];
+  currentHand = 0;
+  dealCard(playerHands[0]);
   dealCard(dealer);
-  dealCard(player);
+  dealCard(playerHands[0]);
   dealCard(dealer);
-  message = "Hit or Stand";
   inRound = true;
-  if (handValue(player) === 21) {
-    stand();
+  const playerBJ = handValue(playerHands[0]) === 21;
+  const dealerBJ = handValue(dealer) === 21;
+  if (playerBJ || dealerBJ) {
+    if (playerBJ && dealerBJ) {
+      message = "Push. Both blackjack.";
+      chips += bet;
+    } else if (playerBJ) {
+      message = "Blackjack! You win.";
+      chips += bet * 2;
+    } else {
+      message = "Dealer has blackjack.";
+    }
+    inRound = false;
+    updateDisplay();
+    return;
   }
+  message = "Hit, Stand, Double or Split";
   updateDisplay();
 }
 
 function hit() {
   if (!inRound) return;
-  dealCard(player);
-  if (handValue(player) > 21) {
-    message = "Bust!";
-    inRound = false;
-    updateResult();
+  const hand = playerHands[currentHand];
+  dealCard(hand);
+  if (handValue(hand) > 21) {
+    message = `Hand ${currentHand + 1} busts.`;
+    moveToNextHand();
   }
+  updateDisplay();
+}
+
+function doubleDown() {
+  if (!inRound) return;
+  const hand = playerHands[currentHand];
+  if (hand.length !== 2 || chips < bets[currentHand]) return;
+  chips -= bets[currentHand];
+  bets[currentHand] *= 2;
+  dealCard(hand);
+  if (handValue(hand) > 21) {
+    message = `Hand ${currentHand + 1} busts.`;
+  }
+  moveToNextHand();
+  updateDisplay();
+}
+
+function splitHand() {
+  if (
+    !inRound ||
+    playerHands.length > 1 ||
+    chips < bets[0] ||
+    playerHands[0].length !== 2 ||
+    handValue([playerHands[0][0]]) !== handValue([playerHands[0][1]])
+  )
+    return;
+  chips -= bets[0];
+  const secondCard = playerHands[0].pop();
+  playerHands.push([secondCard]);
+  bets.push(bets[0]);
+  dealCard(playerHands[0]);
+  dealCard(playerHands[1]);
+  message = "Playing Hand 1";
   updateDisplay();
 }
 
@@ -98,27 +154,41 @@ function dealerPlay() {
   }
 }
 
-function updateResult() {
-  const playerTotal = handValue(player);
-  const dealerTotal = handValue(dealer);
-  if (playerTotal > 21) {
-    message = "Bust! Dealer wins.";
-  } else if (dealerTotal > 21 || playerTotal > dealerTotal) {
-    message = "You win!";
-    chips += bet * 2;
-  } else if (playerTotal === dealerTotal) {
-    message = "Push.";
-    chips += bet;
+function moveToNextHand() {
+  if (currentHand < playerHands.length - 1) {
+    currentHand++;
+    message += " Playing next hand.";
   } else {
-    message = "Dealer wins.";
+    dealerPlay();
+    updateResult();
   }
+}
+
+function updateResult() {
+  const dealerTotal = handValue(dealer);
+  const results = [];
+  playerHands.forEach((hand, idx) => {
+    const playerTotal = handValue(hand);
+    const bet = bets[idx];
+    if (playerTotal > 21) {
+      results.push(`Hand ${idx + 1}: Bust.`);
+    } else if (dealerTotal > 21 || playerTotal > dealerTotal) {
+      results.push(`Hand ${idx + 1}: You win!`);
+      chips += bet * 2;
+    } else if (playerTotal === dealerTotal) {
+      results.push(`Hand ${idx + 1}: Push.`);
+      chips += bet;
+    } else {
+      results.push(`Hand ${idx + 1}: Dealer wins.`);
+    }
+  });
+  message = results.join(" ");
   inRound = false;
 }
 
 function stand() {
   if (!inRound) return;
-  dealerPlay();
-  updateResult();
+  moveToNextHand();
   updateDisplay();
 }
 
@@ -127,6 +197,8 @@ document.addEventListener("keydown", (e) => {
   if (key === "d") startRound();
   if (key === "h") hit();
   if (key === "s") stand();
+  if (key === "p") splitHand();
+  if (key === "x") doubleDown();
 });
 
 window.addEventListener("resize", resize);
