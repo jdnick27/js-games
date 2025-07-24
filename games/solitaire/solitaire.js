@@ -1,8 +1,12 @@
 const board = document.getElementById("solitaire");
 const messageEl = document.getElementById("message");
+const timerEl = document.getElementById("timer");
 
 const SUITS = ["♠", "♥", "♦", "♣"];
 const RANKS = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
+
+let startTime = null;
+let timerInterval = null;
 
 function rankValue(rank) {
   return RANKS.indexOf(rank) + 1;
@@ -10,6 +14,32 @@ function rankValue(rank) {
 
 function cardColor(suit) {
   return suit === "♥" || suit === "♦" ? "red" : "black";
+}
+
+function formatTime(seconds) {
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+  return `${minutes.toString().padStart(2, "0")}:${remainingSeconds.toString().padStart(2, "0")}`;
+}
+
+function updateTimer() {
+  if (startTime) {
+    const elapsed = Math.floor((Date.now() - startTime) / 1000);
+    timerEl.textContent = `Time: ${formatTime(elapsed)}`;
+  }
+}
+
+function startTimer() {
+  startTime = Date.now();
+  timerInterval = setInterval(updateTimer, 1000);
+  updateTimer();
+}
+
+function stopTimer() {
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
 }
 
 let stock = [];
@@ -48,6 +78,7 @@ function setup() {
   waste = [];
   foundations = [[], [], [], []];
   selected = null;
+  startTimer();
   render();
 }
 
@@ -195,7 +226,9 @@ function onCardClick(pile, pileIndex, cardIndex) {
 
 function checkWin() {
   if (foundations.every((f) => f.length === 13)) {
-    messageEl.textContent = "You win!";
+    stopTimer();
+    const elapsed = Math.floor((Date.now() - startTime) / 1000);
+    messageEl.textContent = `You win! Time: ${formatTime(elapsed)}`;
   } else {
     messageEl.textContent = "";
   }
