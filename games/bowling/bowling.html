@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bowling Game</title>
+    <link rel="stylesheet" href="../../style.css" />
+  </head>
+  <body>
+    <div id="overlay">
+      <h1>Bowling Game</h1>
+      <p>Use ←/→ to move the ball and press Space to roll.</p>
+      <p id="frameInfo"></p>
+      <p id="scoreInfo"></p>
+    </div>
+    <div id="scoreboard">
+      <h2>Scoreboard</h2>
+      <ol id="scores"></ol>
+      <p id="totalScore"></p>
+    </div>
+    <div id="gameMenu">
+      <a id="homeLink" href="../../index.html">Back to Home</a>
+      <a id="aboutLink" href="about.html">About Game</a>
+    </div>
+    <canvas id="bowling"></canvas>
+    <script src="bowling.js"></script>
+    <script src="../../theme.js"></script>
+    <script src="../../menu.js"></script>
+  </body>
+</html>
