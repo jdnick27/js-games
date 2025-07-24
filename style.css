@@ -291,3 +291,39 @@ body {
 .roulette-cell.green {
   background: green;
 }
+
+#solitaire {
+  background: var(--game-bg);
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+}
+
+#topRow,
+#tableauRow {
+  display: flex;
+  margin: 10px;
+}
+
+.pile {
+  position: relative;
+  width: 80px;
+  min-height: 80px;
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
+  margin-right: 10px;
+  pointer-events: auto;
+}
+
+.foundation {
+  width: 60px;
+}
+
+.pile .card {
+  position: absolute;
+  left: 0;
+}
+
+.selected {
+  outline: 2px solid blue;
+}

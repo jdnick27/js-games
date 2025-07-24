@@ -39,6 +39,10 @@ a chip and right click to remove one before spinning. A correct bet pays 35:1.
 Roll the ball down the lane and knock down pins. Scores are calculated using
 standard bowling rules.
 
+## Solitaire
+
+Move cards between the tableau, waste and four foundations to build each suit in order.
+
 ## Playing
 
 Open `index.html` in a web browser to access the home menu. Choose **Start Game** to play or read **About Game/Rules** for instructions. The game canvas will scale to your browser window. Use the left and right arrow keys to adjust the shot angle. The controls are inverted so the left arrow rotates the aim right and the right arrow rotates it left.
