@@ -78,6 +78,7 @@ function setup() {
   waste = [];
   foundations = [[], [], [], []];
   selected = null;
+  stopTimer();
   startTimer();
   render();
 }
