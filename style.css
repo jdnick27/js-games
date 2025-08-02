@@ -97,6 +97,11 @@ body {
   margin-top: 5px;
 }
 
+#timer {
+  font-weight: bold;
+  margin: 5px 0;
+}
+
 #powerBar {
   position: absolute;
   bottom: 40px;
