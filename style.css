@@ -220,6 +220,7 @@ body {
   border-radius: 5px;
   cursor: pointer;
   margin-top: 20px;
+  color: var(--text-color);
 }
 #themeToggle:hover {
   background: var(--link-hover-bg);
